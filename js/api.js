@@ -61,3 +61,6 @@ async function fetchWeather(lat, lon) {
 
 // On lance le processus au chargment
 initWeather();
+
+// On update toute les 10min (600 000ms)
+setInterval(fetchWeather(lat, lon), 600000)
