@@ -26,44 +26,70 @@ const taskInput = document.getElementById('task-input');
 const addTaskBtn = document.getElementById('add-task-button');
 const taskList = document.getElementById('task-list');
 
+// Notre "État" : On essaie de récupérer les taĉhes sauvegardées, sinon on part d'une liste cide
+let tasks = JSON.parse(localStorage.getItem('myTasks')) || [];
+
+// Fonction pour sauvegarder dans le navigateur
+function saveToLocalStorage() {
+    localStorage.setItem('myTasks', JSON.stringify(tasks));
+}
+
+// Fonction pour afficher (Rendre) la liste à l'écran
+function renderTasks() {
+    // On vide la liste actuelle pour éviter des doublons
+    taskList.innerHTML = '';
+
+    // Pour chaque taĉhe dans notre tableau...
+    tasks.forEach((task, index) => {
+        const li = document.createElement('li');
+        li.style.display = "flex";
+        li.style.justifyContent = "sapce-between";
+        li.style.marginBottom = "10px";
+
+        const span = document.createElement('span');
+        span.style.alignContent = "center";
+        span.style.padding = "5px";
+        span.textContent = task;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = "X";
+        deleteBtn.style.backgroundColor = "#ff6b6b";
+        deleteBtn.style.marginLeft = "10px";
+        deleteBtn.style.borderRadius = "5px";
+        deleteBtn.style.padding = "10px 15px";
+
+        // Quand on clique sur supprimer
+        deleteBtn.addEventListener('click', () => {
+            // 1. On enlève la tâche du tableau (de l'État)
+            tasks.splice(index, 1);
+
+            // 2. On sauvegarde le nouvel état
+            saveToLocalStorage();
+
+            // 3. On réaffiche la liste à jour
+            renderTasks();
+        });
+
+        li.appendChild(span);
+        li.appendChild(deleteBtn);
+        taskList.appendChild(li);
+    });
+}
+
 // Fonction pour ajouter une tâche
 function addTask() {
-    // 1. Récupérer la valeur écrite par l'utilisateur
     const taskText = taskInput.value;
+    if (taskText === "") return;
 
-    // 2. Validation : On ne fait rien si le champ est vide
-    if (taskText === "") {
-        alert("Attention : La tâche ne peut pas être vide !");
-        return; // On arrête la fonction ici
-    }
+    // 1. On ajoute au tableau (l'État)
+    tasks.push(taskText);
 
-    // 3. Création des éléments HTML (li + bouton supprimer)
-    const li = document.createElement('li');
-    li.style.display = "flex"; // Un peu de CSS via JS (juste pour l'alignement)
-    li.style.justifyContent = "space-between";
-    li.style.marginBottom = "10px";
+    // 2. On sauvegarde
+    saveToLocalStorage();
 
-    const span = document.createElement('span');
-    span.textContent = taskText;
+    // 3. On affiche
+    renderTasks();
 
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = "X";
-    deleteBtn.style.backgroundColor = "#ff6b6b"; // Rouge pour supprimer
-    deleteBtn.style.marginLeft = "10px";
-
-    // 4. Ajouter l'événement "Supprimer" sur ce boutton spécifique
-    deleteBtn.addEventListener('click', function() {
-        taskList.removeChild(li);
-    });
-
-    // 5. Assemblage : on met le texte et le bouton dans le <li>
-    li.appendChild(span);
-    li.appendChild(deleteBtn);
-
-    // 6. On ajoute le tout à la liste principale (<ul>)
-    taskList.appendChild(li);
-
-    // 7. On vide le champ de texte pour la prochaine tâche
     taskInput.value = "";
 }
 
@@ -79,3 +105,6 @@ taskInput.addEventListener('keypress', function(event)
         addTask();
     }
 });
+
+// Au lancemen de la page, on affiche les taĉhes sauvegardées
+renderTasks();
