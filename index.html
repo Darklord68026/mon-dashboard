@@ -9,28 +9,41 @@
     <script defer src="js/api_weather.js"></script>
 </head>
 <body>
-    <header>
-        <h1>Mon Espace</h1>
-        <div id="clock" class="clock">00:00</div>
-    </header>
 
-    <main class="dashboard-container">
-
-        <section class="widget weather-widget">
-            <h2>Météo</h2>
-            <div id="weather-display">Chargement...</div>
-        </section>
-
-        <section class="widget todo-widget">
-            <h2>À faire</h2>
-            <ul id="task-list"></ul>
-            <div class="input-group">
-                <input type="text" id="task-input" placeholder="Nouvelle tâche...">
-                <button id="add-task-button">Ajouter</button>
+    <div id="login-screen" class="login-container">
+        <div class="login-box">
+            <h2>Bienvenue</h2>
+            <input type="text" id="username" placeholder="Utilisateur">
+            <input type="password" id="password" placeholder="Mot de passe">
+            <div class="auth-buttons">
+                <button onclick="login()">Se connecter</button>
+                <button onclick="register()" class="secondary-btn">S'inscrire</button>
             </div>
-        </section>
+            <p id="auth-error" style="color: #ff6b6b; margin-top: 10px;"></p>
+        </div>
+    </div>
 
-    </main>
+    <div id="dashboard-screen" style="display: none;">
+        <header>
+            <h1>Mon Espace</h1>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div id="clock" class="clock">00:00</div>
+                <button onclick="logout()" style="background: #ff6b6b; font-size: 0.8rem;">Déconnexion</button>
+            </div>
+        </header>
 
-</body>
+        <main class="dashboard-container">
+            <section class="widget todo-widget">
+                <h2>À faire</h2>
+                <ul id="task-list"></ul>
+                <div class="input-group">
+                    <input type="text" id="task-input" placeholder="Nouvelle tâche...">
+                    <button id="add-task-btn">Ajouter</button>
+                </div>
+            </section>
+            
+        </main>
+    </div>
+
+    </body>
 </html>
