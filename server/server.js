@@ -4,6 +4,8 @@ const express = require('express');
 const cors = require('cors'); // Import dynamique pour node-fetch (version récente)
 const axios = require('axios');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = 3000;
