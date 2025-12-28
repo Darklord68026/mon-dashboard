@@ -19,6 +19,9 @@ function initWeather() {
 
             // On appelle notre fonction météo avec ces coordonnées précises
             fetchWeather(lat, lon);
+
+            // On update toute les 10min (600 000ms)
+            setInterval(() => {console.log("Mise à jour automatique de la météo..."); fetchWeather(lat, lon);}, 600000);
         },
         // Cas d'erreur : l'utilisateur refuse ou ça ne marche pas
         () => {
@@ -79,6 +82,3 @@ function convertWindDirection(degrees) {
 
 // On lance le processus au chargment
 initWeather();
-
-// On update toute les 10min (600 000ms)
-setInterval(fetchWeather(lat, lon), 600000)
