@@ -46,26 +46,6 @@ function convertWindDirection(degrees) {
     return directions[index];
 }
 
-function getWeatherQuery(code) {
-    // Switch est ue alternative propre aux multiple "if / else if"
-    switch (true) {
-        case code === 0:
-            return "nature,sunny,clear sky";
-        case code >= 1 && code <= 3:
-            return "nature,cloudy";
-        case code >= 45 && code <= 48:
-            return "fog,forest";
-        case code >= 51 && code <= 67:
-            return "rain,moody";
-        case code >= 71 && code <= 77:
-            return "snow,winter";
-        case code >= 95 && code <= 99:
-            return "storm, thunder";
-        default:
-            return "landscape,nature";
-    }
-}
-
 function getWeather(code) {
     // Switch est ue alternative propre aux multiple "if / else if"
     switch (true) {
@@ -86,24 +66,32 @@ function getWeather(code) {
     }
 }
 
-async function updateBackgound(weatherCode) {
-    const query = getWeatherQuery(weatherCode);
-    // On demande une image aléatoire correspondant au mot clé
-    const url = `https://api.unsplash.com/photos/random?query=${query}&orientation=landscape&client_id=${CONFIG.UNSPLASH_KEY}`;
+async function updateBackground(weatherCode) {
+    const url = `http://127.0.0.1:3000/api/background?code=${weatherCode}`;
 
     try {
         const response = await fetch(url);
+
+        // --- AJOUT DE CETTE VÉRIFICATION ---
+        if (!response.ok) {
+            // Si le serveur a renvoyé 404, 500, 401... on arrête tout
+            throw new Error(`Erreur HTTP serveur : ${response.status}`);
+        }
+        // -----------------------------------
+
         const data = await response.json();
+        
+        console.log("📦 Données reçues :", data);
 
-        // L'URL de l'image optimisé pour écran (regular)
-        const imageUrl = data.urls.regular;
-
-        // On applique l'image au body
-        document.body.style.backgroundImage = `url('${imageUrl}')`;
+        if (data.urls && data.urls.regular) {
+            document.body.style.backgroundImage = `url('${data.urls.regular}')`;
+        } else {
+            console.warn("Pas d'URL d'image trouvée dans la réponse");
+        }
+        
     } catch (error) {
-        console.error("Erreur Unsplash :", error)
-        // Image de secours si l'API plante (ou quota dépassé)
-
+        // C'est ici que tu verras la vraie erreur s'afficher
+        console.error("Problème final :", error.message);
         document.body.style.backgroundColor = "#121212";
     }
 }
@@ -125,7 +113,7 @@ async function fetchWeather(lat, lon) {
         const windDirection = convertWindDirection(windDegrees);
         const weatherCode = data.current.weather_code;
 
-        updateBackgound(weatherCode)
+        updateBackground(weatherCode)
 
         // Affichage propre
         weatherDisplay.innerHTML = `
