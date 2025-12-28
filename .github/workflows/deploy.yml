@@ -1,0 +1,40 @@
+name: Deploy to AWS EC2
+
+# Déclencheur: Quand on push sur la branch 'main'
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+
+            - name: Deploy to server via SSH
+              uses: appleboy/ssh-action@master
+              with:
+                host: ${{ secrets.EC2_HOST }}
+                username: ${{ secrets.EC2_USERNAME }}
+                key: ${{ secrets.EC2_SSH_KEY }}
+                port: 22
+                # C'est ici qu'on met les commandes à faire sur le serveur
+                script: | 
+                  # 1. Aller dans le dossier
+                  cd /home/ubuntu/mon-dashboard
+
+                  # 2. Forcer la mise à jour
+                  git fetch --all
+                  git reset --hard origin/main
+
+                  # 3. Installer les nouvelles dépendances s'il y en a
+                  cd server
+                  npm install
+
+                  # 4. Redémarrer le backend avec PM2 pour appliquer les changements
+                  pm2 restart api-dashboard
+
+                  echo "Déploiment terminé avec succès"
