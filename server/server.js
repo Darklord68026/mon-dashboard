@@ -49,7 +49,8 @@ app.post('/api/register', async(req, res) => {
         await newUser.save();
         res.status(201).json({ message: "Utilisateur créé !" });
     } catch (error) {
-        res.status(500).json({ error: "Erreur (L'utilisateur existe déjà ?" });
+        res.status(500).json({ error: "Erreur (L'utilisateur existe déjà ?)" });
+        console.error("Erreur resgister :", error);
     }
 });
 
