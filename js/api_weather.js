@@ -66,6 +66,26 @@ function getWeatherQuery(code) {
     }
 }
 
+function getWeather(code) {
+    // Switch est ue alternative propre aux multiple "if / else if"
+    switch (true) {
+        case code === 0:
+            return "Ciel dégagé";
+        case code >= 1 && code <= 3:
+            return "Ciel nuageux";
+        case code >= 45 && code <= 48:
+            return "Brouillard";
+        case code >= 51 && code <= 67:
+            return "Pluie";
+        case code >= 71 && code <= 77:
+            return "Neige";
+        case code >= 95 && code <= 99:
+            return "Orage";
+        default:
+            return "landscape,nature";
+    }
+}
+
 async function updateBackgound(weatherCode) {
     const query = getWeatherQuery(weatherCode);
     // On demande une image aléatoire correspondant au mot clé
@@ -118,8 +138,8 @@ async function fetchWeather(lat, lon) {
         <div style="font-size: 1rem; color: #aaa;">
         Vent: ${windSpeed} km/h ${windDirection}
         </div>
-        <div>
-        Temps : ${weatherCode}
+        <div style="color: #aaa;">
+        Temps : ${getWeather(weatherCode)}
         </div>
         `;
     } catch (error) {
