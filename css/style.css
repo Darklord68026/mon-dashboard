@@ -7,10 +7,27 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #121212;
     color: #ffffff;
     line-height: 1.6;
     padding: 2rem;
+
+    /* GESTION DU FOND */
+    background-color: #121212; /* Couleur de repli */
+    background-size: cover; /* L'image couvre tout l'écran */
+    background-position: center;
+    background-attachment: fixed; /* L'image ne bouge aps quand on scroll */
+    background-repeat: no-repeat;
+
+    /* Astuce pro : un dégradé sombre par dessus l'image pour le contraste */
+    /* Note: backgroundImage sera écrasé par le JS donc on ruse un peu */
+    transition: background-image 0.5s ease-in-out; /* Effet fondu sympa */
+}
+
+/* Pour garantir la lisibilité, on va plutôt mettre un fond semi-transparent sur les widgets */
+.widget, header {
+    background-color: rgba(0, 0, 0, 0.6) !important; /* 60% opaque */
+    backdrop-filter: blur(10px); /* Effet de flou "verre dépoli" style Apple/Windows */
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 header {
