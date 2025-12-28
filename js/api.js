@@ -32,7 +32,7 @@ async function fetchWeather(lat, lon) {
     const weatherDisplay = document.getElementById('weather-display');
 
     // On insère les variables dans lat et lon dans l'URL
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&models=meteofrance_seamless&current=wind_speed_10m,temperature_2m`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&models=meteofrance_seamless&current=wind_speed_10m,temperature_2m,wind_direction_10m`;
 
     try {
         const response = await fetch(url);
@@ -40,6 +40,8 @@ async function fetchWeather(lat, lon) {
 
         const temperature = data.current.temperature_2m;
         const windSpeed = data.current.wind_speed_10m;
+        const windDegrees = data.current.wind_direction_10m;
+        const windDirection = convertWindDirection(windDegrees);
 
         // Affichage propre
         weatherDisplay.innerHTML = `
@@ -50,13 +52,29 @@ async function fetchWeather(lat, lon) {
         ${temperature}°C
         </div>
         <div style="font-size: 1rem; color: #aaa;">
-        Vent: ${windSpeed} km/h
+        Vent: ${windSpeed} km/h ${windDirection}
         </div>
         `;
     } catch (error) {
         console.error("Erreur API Météo :", error);
         weatherDisplay.textContent = "Erreur chargement météo";
     }
+}
+
+function convertWindDirection(degrees) {
+    // Liste des 16 directions (Sens horaire)
+    // N = Nord, E = Est, S = Sud, O = Ouest
+    const directions = [
+        'N', 'NNE', 'NE', 'ENE',
+        'E', 'ESE', 'SE', 'SSE',
+        'S', 'SSO', 'SO', 'OSO',
+        'O', 'ONO', 'NO', 'NNO'
+    ];
+
+    // 1. On divise par 22.5 car il y a 16 secteurs (360 / 16 = 22.5)
+    // 2. Le modulo de 16 (% 16) permet de boucler (l'index 16 redevient 0)
+    const index = Math.round(degrees / 22.5) % 16
+    return directions[index];
 }
 
 // On lance le processus au chargment
