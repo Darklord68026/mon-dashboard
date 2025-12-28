@@ -67,7 +67,7 @@ function getWeather(code) {
 }
 
 async function updateBackground(weatherCode) {
-    const url = `http://127.0.0.1:3000/api/background?code=${weatherCode}`;
+    const url = `http://15.188.54.25/api/background?code=${weatherCode}`;
 
     try {
         const response = await fetch(url);
