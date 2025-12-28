@@ -71,7 +71,7 @@ app.post('/api/login', async(req, res) => {
 
         // On crée le TOKEN
         // Il contient l'ID de l'utilisateur et expire dans 24h
-        const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expireIn: '24h' });
+        const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
         // On renvoie le token au frontend
         res.json({ token: token });
