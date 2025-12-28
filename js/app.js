@@ -1,8 +1,10 @@
 // --- CONFIGURATION ---
-// Si tu es en local : 'http://127.0.0.1:3000'
-// Si tu es en prod : '' (vide, car on utilise le chemin relatif /api/...)
-// Pour que ça marche PARTOUT (Local et Prod), on utilise une petite astuce :
-const API_URL = window.location.hostname === '/api'
+// On regarde si on est sur le PC en local (dev) ou sur le serveur (prod)
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://127.0.0.1:3000/api'  // Cas LOCAL : On vise le port 3000
+    : '/api';                      // Cas PROD (DuckDNS) : On utilise le chemin relatif
+
+console.log("🔗 URL de l'API :", API_URL); // Regarde ta console pour vérifier !
 
 let token = localStorage.getItem('token');
 
