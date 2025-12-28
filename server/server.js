@@ -3,12 +3,138 @@ require('dotenv').config(); // Charge les variables secrètes
 const express = require('express');
 const cors = require('cors'); // Import dynamique pour node-fetch (version récente)
 const axios = require('axios');
+const mongoose = require('mongoose');
 
 const app = express();
 const PORT = 3000;
 
 // Autorise le frontend à parler au backend
 app.use(cors());
+app.use(express.json());
+
+// Connexion à MongoDB
+mongoose.connect(process.env.MONGO_URL)
+    .then(() => console.log("Connecté à MongoDB Atlas"))
+    .catch(err => console.error("Erruer MongoDB: ", err));
+
+// Définition du "Schéma" (a quoi ressemble la tache)
+const taskSchema = new mongoose.Schema({
+    text: String,
+    isDone: Boolean,
+    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    createdAt: { type: Date, default: Date.now }
+});
+// Création du Modèle
+const Task = mongoose.model('Task', taskSchema);
+
+// Schéma Utilisateur
+const userSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true},
+    password: { type: String, required: true }
+});
+const User = mongoose.model('User', userSchema);
+
+// 1. Inscription
+app.post('/api/register', async(req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = new User({
+            username,
+            password: hashedPassword
+        });
+
+        await newUser.save();
+        res.status(201).json({ message: "Utilisateur créé !" });
+    } catch (error) {
+        res.status(500).json({ error: "Erreur (L'utilisateur existe déjà ?" });
+    }
+});
+
+// 2. Connexion
+app.post('/api/login', async(req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        // On cherche l'utilisateur
+        const user = await User.findOne({ username });
+        if (!user) return res.status(400).json({ error: "Utilisateur inconnu "});
+
+        // On compare le mot de passe envoyé avec le hash en base de données
+        const validPassword = await bcrypt.compare(password, user.password);
+        if (!validPassword) returnres.status(400).json({ error: "Mot de passe inconnu" });
+
+        // On crée le TOKEN
+        // Il contient l'ID de l'utilisateur et expire dans 24h
+        const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expireIn: '24h' });
+
+        // On renvoie le token au frontend
+        res.json({ token: token });
+    } catch (error) {
+        res.status(500).json({ error: "Erreur serveur" });
+    }
+});
+
+function authMiddleware(req, res, next) {
+    // Le token est envoyé dans le header : "Authorization: Bearer <TOKEN>"
+    const authHeader = req.header('Authorization');
+    const token = authHeader && authHeader.split(' ')[1]; // On enlève le mot Bearer
+
+    if (!token) return res.status(401).json({ error: "Accès refusé" });
+
+    try {
+        // On vérifie la signature du badge
+        const verified = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = verified; // on attache les infos du user à la requête
+        next(); // On laisse passer
+    } catch (error) {
+        res.status(400).json({ error: "Token invalide" });
+    }
+}
+
+// Récupérer SES tâches uniquement
+// Note l'ajout de 'authMiddleware' au milieu
+app.get('/api/tasks', authMiddleware, async (req, res) => {
+    try {
+        // On cherche les tâches où owner == l'ID du token
+        const tasks = await Task.find({ owner: req.user._id }).sort({ createdAt: -1 });
+        res.json(tasks);
+    } catch (error) {
+        res.status(500).json({ error: "Erreur" });
+    }
+});
+
+// Ajouter une tâche A SOI
+app.post('/api/tasks', authMiddleware, async (req, res) => {
+    try {
+        const newTask = new Task({
+            text: req.body.text,
+            isDone: false,
+            owner: req.user._id // <--- Important : on l'assigne à celui qui est connecté
+        });
+        const savedTask = await newTask.save();
+        res.json(savedTask);
+    } catch (error) {
+        res.status(500).json({ error: "Erreur" });
+    }
+});
+
+// Supprimer UNE DE SES tâches
+app.delete('/api/tasks/:id', authMiddleware, async (req, res) => {
+    try {
+        // On vérifie que la tâche existe ET qu'elle appartient bien au user
+        const result = await Task.deleteOne({ _id: req.params.id, owner: req.user._id });
+        
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: "Tâche introuvable ou non autorisée" });
+        }
+        res.json({ message: "Supprimé" });
+    } catch (error) {
+        res.status(500).json({ error: "Erreur" });
+    }
+});
 
 // Route: /api/background
 // Le frontend appellera : http://localhost:3000/api/background?code=61

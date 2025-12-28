@@ -23,6 +23,42 @@ body {
     transition: background-image 0.5s ease-in-out; /* Effet fondu sympa */
 }
 
+/* Ecran de connexion centré */
+.login-container {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: #121212;
+    display: flex; justify-content: center; align-items: center;
+    z-index: 1000;
+}
+
+.login-box {
+    background: #1e1e1e;
+    padding: 3rem;
+    border-radius: 15px;
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+.login-box input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    border: 1px solid #333;
+    background: #2c2c2c;
+    color: white;
+}
+
+.secondary-btn {
+    background-color: transparent;
+    border: 1px solid #4dabf7;
+    color: #4dabf7;
+    margin-left: 10px;
+}
+
 header {
     display: flex;
     justify-content: space-between;
