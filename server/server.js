@@ -77,6 +77,7 @@ app.post('/api/login', async(req, res) => {
         res.json({ token: token });
     } catch (error) {
         res.status(500).json({ error: "Erreur serveur" });
+        console.error("Erreur connexion :", error);
     }
 });
 
