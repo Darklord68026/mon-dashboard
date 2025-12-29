@@ -38,12 +38,12 @@ export function appendTaskToUI(task) {
     li.id = `task-${task._id}`;
     li.style.display = "flex";
     li.style.justifyContent = "space-between";
-    li.style.alignContent = "center";
     li.style.background = "#2c2c2c";
     li.style.padding = "10px";
     li.style.marginBottom = "5px";
 
     const span = document.createElement('span');
+    span.style.alignContent = "center";
     span.textContent = task.text;
 
     const deleteBtn = document.createElement('button');
