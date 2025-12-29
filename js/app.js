@@ -150,7 +150,7 @@ function renderTasks(tasks) {
 
     tasks.forEach(task => {
         const li = document.createElement('li');
-        li.id = `task-${task_id}`;
+        li.id = `task-${taskId}`;
         li.style.display = "flex";
         li.style.justifyContent = "space-between";
         li.style.marginBottom = "10px";
