@@ -41,6 +41,10 @@ export function appendTaskToUI(task) {
     li.style.background = "#2c2c2c";
     li.style.padding = "10px";
     li.style.marginBottom = "5px";
+    li.style.borderRadius = "5px";
+    li.style.boxShadow = "0 4px rgba(0, 0, 0, 0.3)";
+    li.style.backdropFilter = "blur(10px)";
+    li.style.backgroundColor = "rgba(0, 0, 0, 0) !important";
 
     const span = document.createElement('span');
     span.style.alignContent = "center";
