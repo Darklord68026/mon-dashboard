@@ -66,7 +66,7 @@ export function removeTaskFromUI(taskId) {
 
 export function setWeatherLoading() {
     const el = document.getElementById('weather-display');
-    if (el) el.textContent = "� Localisation en cours...";
+    if (el) el.textContent = "Localisation en cours...";
 }
 
 export function setWeatherError(message) {
