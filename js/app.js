@@ -1,60 +1,62 @@
+// js/app.js
+
 // --- CONFIGURATION ---
 // On regarde si on est sur le PC en local (dev) ou sur le serveur (prod)
 const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://127.0.0.1:3000/api'  // Cas LOCAL : On vise le port 3000
-    : '/api';                      // Cas PROD (DuckDNS) : On utilise le chemin relatif
-
-console.log("🔗 URL de l'API :", API_URL); // Regarde ta console pour vérifier !
+    ? 'http://127.0.0.1:3000/api'
+    : '/api';
 
 // --- CONFIG SOCKET.IO ---
-// On définit l'URL du serveur Socket (la racine du site)
 const SOCKET_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://127.0.0.1:3000'
-    : 'https://' + window.location.hostname; // En prod, c'est ton domaine
+    : window.location.origin; // Plus fiable pour la prod
 
 const socket = io(SOCKET_URL);
 
+let token = localStorage.getItem('token');
+
 socket.on('connect', () => {
-    console.log("� Connecté au serveur Temps Réel !");
+    console.log("🟢 Connecté au serveur Temps Réel !");
 });
 
-// --- ÉCOUTE DES ÉVÉNEMENTS ---
+// --- ÉCOUTE DES ÉVÉNEMENTS SOCKET ---
 
-// 1. Quand une tâche est ajoutée par QUELQU'UN
+// 1. Quand une tâche est ajoutée
 socket.on('taskAdded', (newTask) => {
-    // Astuce : On vérifie si la tâche nous appartient avant de l'afficher
-    // (Sinon tu vas voir les tâches de ton pote !)
-
-    // Pour faire simple, on récupère notre ID utilisateur depuis le token
-    // (Décodage simple du JWT : la partie du milieu est en base64)
     if (!token) return;
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const myId = payload._id;
-
-    if (newTask.owner === myId) {
-        console.log("⚡ Nouvelle tâche reçue en temps réel !");
-        // On ajoute visuellement la tâche sans recharger
-        appendTaskToUI(newTask);
+    
+    // On vérifie si la tâche nous appartient
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (newTask.owner === payload._id) {
+            console.log("⚡ Nouvelle tâche reçue !");
+            appendTaskToUI(newTask); // On l'ajoute sans recharger
+        }
+    } catch (e) {
+        console.error("Erreur lecture token socket", e);
     }
 });
 
 // 2. Quand une tâche est supprimée
-socket.on('taskDeleted', (taskId) => {
-    console.log("⚡ Suppression reçue !");
-    const element = document.getElementById(`task-${taskId}`);
-    if (element) element.remove();
+socket.on('taskDeleted', (idRecu) => {
+    console.log("⚡ Suppression reçue pour l'ID :", idRecu);
+    const element = document.getElementById(`task-${idRecu}`);
+    if (element) {
+        element.remove();
+    } else {
+        // Sécurité : si on ne trouve pas l'élément, on recharge tout
+        loadTasks();
+    }
 });
 
-let token = localStorage.getItem('token');
 
-// --- 1. GESTION DE L'AFFICHAGE (Login vs Dashboard) ---
+// --- GESTION DE L'INTERFACE ---
 
 function checkAuth() {
     if (token) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('dashboard-screen').style.display = 'block';
-        loadTasks(); // On charge les tâches depuis le serveur
-        // On lance l'horloge (si elle n'est pas déjà lancée)
+        loadTasks();
         if (!window.clockInterval) startClock();
     } else {
         document.getElementById('login-screen').style.display = 'flex';
@@ -68,7 +70,7 @@ function logout() {
     checkAuth();
 }
 
-// --- 2. AUTHENTIFICATION (Login / Register) ---
+// --- AUTHENTIFICATION ---
 
 async function login() {
     const usernameInput = document.getElementById('username').value;
@@ -86,7 +88,6 @@ async function login() {
 
         if (!res.ok) throw new Error(data.error);
 
-        // SUCCÈS : On sauvegarde le token
         token = data.token;
         localStorage.setItem('token', token);
         errorMsg.textContent = "";
@@ -113,67 +114,85 @@ async function register() {
             const data = await res.json();
             throw new Error(data.error);
         }
-
         alert("Compte créé ! Connectez-vous maintenant.");
-        // Optionnel : on pourrait connecteur l'user directement
     } catch (err) {
         errorMsg.textContent = err.message;
     }
 }
 
-// --- 3. GESTION DES TÂCHES (CRUD via API) ---
+// --- TÂCHES (CRUD) ---
 
 async function loadTasks() {
     const taskList = document.getElementById('task-list');
     taskList.innerHTML = '<li style="text-align:center">Chargement...</li>';
 
     try {
-        // L'APPEL GET AVEC LE TOKEN
         const res = await fetch(`${API_URL}/tasks`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (res.status === 401) { logout(); return; } // Token expiré
+        if (res.status === 401) { logout(); return; }
 
         const tasks = await res.json();
-        renderTasks(tasks);
+        taskList.innerHTML = ''; // On vide "Chargement..."
+        
+        // On affiche chaque tâche
+        tasks.forEach(task => appendTaskToUI(task));
 
     } catch (err) {
-        console.error("Erreur chargement tâches", err);
+        console.error("Erreur chargement", err);
         taskList.innerHTML = '<li>Erreur de connexion</li>';
     }
 }
 
+// Nouvelle fonction pour ajouter UNE SEULE tâche au HTML
+// (Utilisée par loadTasks ET par le Socket)
+function appendTaskToUI(task) {
+    const taskList = document.getElementById('task-list');
+
+    // Vérifie si la tâche est déjà affichée pour éviter les doublons
+    if (document.getElementById(`task-${task._id}`)) return;
+
+    const li = document.createElement('li');
+    // C'EST ICI QUE TU AVAIS L'ERREUR : on utilise task._id
+    li.id = `task-${task._id}`;
+    
+    // Style CSS direct (tu pourrais le mettre dans style.css)
+    li.style.display = "flex";
+    li.style.justifyContent = "space-between";
+    li.style.marginBottom = "10px";
+    li.style.padding = "10px";
+    li.style.background = "#2c2c2c";
+    li.style.borderRadius = "5px";
+
+    const span = document.createElement('span');
+    span.textContent = task.text;
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = "X";
+    deleteBtn.style.backgroundColor = "#ff6b6b";
+    deleteBtn.style.marginLeft = "10px";
+    deleteBtn.style.padding = "5px 10px";
+    deleteBtn.style.fontSize = "0.8rem";
+    deleteBtn.style.cursor = "pointer";
+    deleteBtn.style.border = "none";
+    deleteBtn.style.borderRadius = "3px";
+    deleteBtn.style.color = "white";
+
+    deleteBtn.onclick = () => deleteTask(task._id);
+
+    li.appendChild(span);
+    li.appendChild(deleteBtn);
+    
+    // On ajoute la tâche tout en haut de la liste
+    taskList.prepend(li);
+}
+
+// Anciennement renderTasks (maintenant remplacé par appendTaskToUI utilisé dans la boucle)
 function renderTasks(tasks) {
     const taskList = document.getElementById('task-list');
     taskList.innerHTML = '';
-
-    tasks.forEach(task => {
-        const li = document.createElement('li');
-        li.id = `task-${taskId}`;
-        li.style.display = "flex";
-        li.style.justifyContent = "space-between";
-        li.style.marginBottom = "10px";
-        li.style.padding = "10px";
-        li.style.background = "#2c2c2c";
-        li.style.borderRadius = "5px";
-
-        const span = document.createElement('span');
-        span.textContent = task.text;
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = "X";
-        deleteBtn.style.backgroundColor = "#ff6b6b";
-        deleteBtn.style.marginLeft = "10px";
-        deleteBtn.style.padding = "5px 10px";
-        deleteBtn.style.fontSize = "0.8rem";
-
-        deleteBtn.onclick = () => deleteTask(task._id); // On utilise l'ID MongoDB (_id)
-
-        li.appendChild(span);
-        li.appendChild(deleteBtn);
-        taskList.appendChild(li);
-    });
+    tasks.forEach(task => appendTaskToUI(task));
 }
 
 async function addTask() {
@@ -193,7 +212,8 @@ async function addTask() {
 
         if (res.ok) {
             taskInput.value = "";
-            loadTasks(); // On recharge la liste pour voir la nouvelle tâche
+            // On ne recharge PAS loadTasks() ici, car le Socket va le faire !
+            // Cela évite d'avoir la tâche en double (une fois par fetch, une fois par socket)
         }
     } catch (err) {
         console.error(err);
@@ -208,23 +228,13 @@ async function deleteTask(id) {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        loadTasks();
+        // On ne recharge PAS loadTasks() ici, le Socket s'occupe de supprimer la ligne
     } catch (err) {
         console.error(err);
     }
 }
 
-socket.on('taskAdded', (newTask) => {
-    // Si c'est à moi, je recharge tout
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    if (newTask.owner === payload._id) loadTasks();
-});
-
-socket.on('taskDeleted', () => {
-    loadTasks();
-});
-
-// --- 4. HORLOGE (Copié de ton ancien code) ---
+// --- HORLOGE ---
 function startClock() {
     window.clockInterval = setInterval(() => {
         const now = new Date();
@@ -239,5 +249,4 @@ document.getElementById('task-input').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') addTask();
 });
 
-// Au lancement, on vérifie si on est déjà connecté
 checkAuth();
