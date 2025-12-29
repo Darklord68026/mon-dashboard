@@ -7,12 +7,33 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+const http = require('http');
+const { Server } = require('socket.io');
+
 const app = express();
 const PORT = 3000;
 
 // Autorise le frontend à parler au backend
 app.use(cors());
 app.use(express.json());
+
+// Création du serveur Socket
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST", "DELETE"]
+    }
+});
+
+// Quand qqn se connecte au socket
+io.on('connection', (socket) => {
+    console.log("Un utilisateur s'est connecté au socket :", socket.id);
+
+    socket.on('disconnect', () => {
+        console.log('Utilisateur déconnecté');
+    });
+});
 
 // Connexion à MongoDB
 mongoose.connect(process.env.MONGO_URL)
@@ -119,6 +140,9 @@ app.post('/api/tasks', authMiddleware, async (req, res) => {
             owner: req.user._id // <--- Important : on l'assigne à celui qui est connecté
         });
         const savedTask = await newTask.save();
+
+        io.emit('taskAdded', savedTask);
+
         res.json(savedTask);
     } catch (error) {
         res.status(500).json({ error: "Erreur" });
@@ -134,6 +158,9 @@ app.delete('/api/tasks/:id', authMiddleware, async (req, res) => {
         if (result.deletedCount === 0) {
             return res.status(404).json({ error: "Tâche introuvable ou non autorisée" });
         }
+
+        io.emit('taskDeleted', req.params.id);
+
         res.json({ message: "Supprimé" });
     } catch (error) {
         res.status(500).json({ error: "Erreur" });
@@ -209,6 +236,6 @@ app.get('/api/background', async(req, res) => {
     }
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Serveur Backend démarré sur http://localhost:${PORT}`);
 });

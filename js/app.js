@@ -6,6 +6,45 @@ const API_URL = (window.location.hostname === 'localhost' || window.location.hos
 
 console.log("🔗 URL de l'API :", API_URL); // Regarde ta console pour vérifier !
 
+// --- CONFIG SOCKET.IO ---
+// On définit l'URL du serveur Socket (la racine du site)
+const SOCKET_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://127.0.0.1:3000'
+    : 'https://' + window.location.hostname; // En prod, c'est ton domaine
+
+const socket = io(SOCKET_URL);
+
+socket.on('connect', () => {
+    console.log("� Connecté au serveur Temps Réel !");
+});
+
+// --- ÉCOUTE DES ÉVÉNEMENTS ---
+
+// 1. Quand une tâche est ajoutée par QUELQU'UN
+socket.on('taskAdded', (newTask) => {
+    // Astuce : On vérifie si la tâche nous appartient avant de l'afficher
+    // (Sinon tu vas voir les tâches de ton pote !)
+
+    // Pour faire simple, on récupère notre ID utilisateur depuis le token
+    // (Décodage simple du JWT : la partie du milieu est en base64)
+    if (!token) return;
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const myId = payload._id;
+
+    if (newTask.owner === myId) {
+        console.log("⚡ Nouvelle tâche reçue en temps réel !");
+        // On ajoute visuellement la tâche sans recharger
+        appendTaskToUI(newTask);
+    }
+});
+
+// 2. Quand une tâche est supprimée
+socket.on('taskDeleted', (taskId) => {
+    console.log("⚡ Suppression reçue !");
+    const element = document.getElementById(`task-${taskId}`);
+    if (element) element.remove();
+});
+
 let token = localStorage.getItem('token');
 
 // --- 1. GESTION DE L'AFFICHAGE (Login vs Dashboard) ---
@@ -111,6 +150,7 @@ function renderTasks(tasks) {
 
     tasks.forEach(task => {
         const li = document.createElement('li');
+        li.id = `task-${task_id}`;
         li.style.display = "flex";
         li.style.justifyContent = "space-between";
         li.style.marginBottom = "10px";
@@ -173,6 +213,16 @@ async function deleteTask(id) {
         console.error(err);
     }
 }
+
+socket.on('taskAdded', (newTask) => {
+    // Si c'est à moi, je recharge tout
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    if (newTask.owner === payload._id) loadTasks();
+});
+
+socket.on('taskDeleted', () => {
+    loadTasks();
+});
 
 // --- 4. HORLOGE (Copié de ton ancien code) ---
 function startClock() {
