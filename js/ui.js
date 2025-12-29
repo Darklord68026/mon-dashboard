@@ -38,7 +38,7 @@ export function appendTaskToUI(task) {
     li.id = `task-${task._id}`;
     li.style.display = "flex";
     li.style.justifyContent = "space-between";
-    // ... (Tu peux remettre tes styles CSS ici ou mieux, dans le fichier .css) ...
+    li.style.alignContent = "center";
     li.style.background = "#2c2c2c";
     li.style.padding = "10px";
     li.style.marginBottom = "5px";
@@ -49,7 +49,8 @@ export function appendTaskToUI(task) {
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = "X";
     deleteBtn.style.marginLeft = "10px";
-    deleteBtn.style.color = "red";
+    deleteBtn.style.backgroundColor = "red";
+    deleteBtn.style.color = "#ffffff";
     
     // Quand on clique, on appelle la fonction globale de suppression
     deleteBtn.onclick = () => deleteTask(task._id);
