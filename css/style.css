@@ -134,7 +134,10 @@ button {
 
 /* --- 1. BOUTON BURGER & HORLOGE FLOTTANTE --- */
 .burger-icon {
-    background: #1e1e1e; color: white; border: 1px solid #444;
+    background-color: rgba(0, 0, 0, 0.6) !important; /* 60% opaque */
+    backdrop-filter: blur(10px); /* Effet de flou "verre dépoli" style Apple/Windows */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 8px 12px; border-radius: 8px;
     font-size: 1.5rem; cursor: pointer; z-index: 1100;
     transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
