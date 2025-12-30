@@ -91,7 +91,9 @@ app.post('/api/tasks', authMiddleware, async (req, res) => {
         const newTask = new Task({
             text: req.body.text,
             isDone: false,
-            owner: req.user._id
+            owner: req.user._id,
+            category: req.body.category || "Général",
+            dueDate: req.body.dueDate || null
         });
         const savedTask = await newTask.save();
 
@@ -146,6 +148,33 @@ app.get('/api/background', async(req, res) => {
         console.error("Erreur Unsplash :", error.message);
         // Gestion simplifiée de l'erreur
         res.status(500).json({ error: "Erreur récupération image" });
+    }
+});
+
+// ================== ROUTES TAGS =======================
+// Récupérer les infos de l'utilisateur (dont ses tags)
+app.get('/api/user/me', authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select('-password'); // On ne renvoie pas le mdp !
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ error: "Erreur serveur" });
+    }
+});
+
+// Mettre à jour les tags
+app.put('/api/user/tags', authMiddleware, async (req, res) => {
+    try {
+        // Le frontend envoie le nouveau tableau de tags complet
+        const { tags } = req.body; 
+        
+        const user = await User.findById(req.user._id);
+        user.tags = tags;
+        await user.save();
+        
+        res.json(user.tags);
+    } catch (error) {
+        res.status(500).json({ error: "Impossible de mettre à jour les tags" });
     }
 });
 

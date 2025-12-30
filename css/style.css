@@ -106,3 +106,151 @@ button {
     color: white;
     cursor: pointer;
 }
+
+/* Fond sombre transparent derrière le modal */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 2000;
+}
+
+.modal-box {
+    background: #1e1e1e; padding: 2rem; border-radius: 15px;
+    width: 90%; max-width: 400px;
+    border: 1px solid #444;
+}
+
+.tag-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #2c2c2c; padding: 8px; margin-bottom: 5px; border-radius: 5px;
+}
+
+.color-dot {
+    width: 15px; height: 15px; border-radius: 50%; margin-right: 10px;
+}
+
+/* ================= NOUVEAU CSS ================= */
+
+/* --- 1. BOUTON BURGER & HORLOGE FLOTTANTE --- */
+.burger-icon {
+    background: #1e1e1e; color: white; border: 1px solid #444;
+    padding: 8px 12px; border-radius: 8px;
+    font-size: 1.5rem; cursor: pointer; z-index: 1100;
+    transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.burger-icon:hover { background: #333; border-color: #666; }
+
+.clock-floating {
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 100;
+}
+
+/* --- 2. SIDEBAR (Menu Latéral) --- */
+.sidebar {
+    position: fixed; top: 0; left: 0;
+    width: 280px; height: 100%;
+    background: #121212; border-right: 1px solid #333;
+    z-index: 1200; /* Au-dessus de tout */
+    display: flex; flex-direction: column;
+    box-shadow: 5px 0 20px rgba(0,0,0,0.7);
+    /* Animation de glissement */
+    transform: translateX(-100%); /* Caché à gauche par défaut */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Classe ajoutée par le JS pour le faire apparaître */
+.sidebar.active { transform: translateX(0); }
+
+.sidebar-header {
+    padding: 20px; display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #333; background: #1a1a1a;
+}
+
+.close-btn { background: none; border: none; color: white; font-size: 2rem; cursor: pointer; }
+.sidebar-content { padding: 20px; flex-grow: 1; }
+
+.menu-item {
+    width: 100%; background: transparent; border: none; color: #ccc;
+    padding: 15px; text-align: left; margin-bottom: 5px;
+    border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 1rem;
+    display: flex; align-items: center; gap: 10px;
+}
+.menu-item:hover { background: #2c2c2c; color: white; transform: translateX(5px); }
+.menu-item.danger { color: #ff6b6b; margin-top: auto; border: 1px solid #ff6b6b33; }
+.menu-item.danger:hover { background: #ff6b6b22; }
+
+/* --- 3. INPUTS & SELECTS SEXY --- */
+.input-group {
+    display: flex; gap: 8px; background: #1e1e1e; padding: 10px;
+    border-radius: 12px; border: 1px solid #333; flex-wrap: wrap;
+}
+
+/* Style commun pour tous les champs */
+.todo-widget input[type="text"],
+.todo-widget input[type="date"],
+.todo-widget select {
+    background: #2a2a2a; color: #eee; border: 1px solid #444;
+    padding: 10px 12px; border-radius: 8px; outline: none;
+    font-family: inherit; transition: border-color 0.2s;
+}
+
+.todo-widget input:focus, .todo-widget select:focus {
+    border-color: #4dabf7; background: #333;
+}
+
+/* Customisation du Select pour virer la flèche moche */
+.todo-widget select {
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 8px center;
+    background-size: 16px; padding-right: 30px; cursor: pointer;
+}
+
+/* Customisation du Calendrier pour qu'il soit blanc */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8); cursor: pointer;
+}
+
+#add-task-btn {
+    background: #4dabf7; color: white; border: none; padding: 0 20px;
+    border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s;
+}
+#add-task-btn:hover { background: #339af0; }
+
+/* --- ANIMATION RETARD (VERSION HARDCORE) --- */
+
+@keyframes alarm-flash {
+    0% {
+        background-color: rgba(255, 0, 0, 0.2); /* Fond rouge sombre */
+        box-shadow: 0 0 0 rgba(255, 0, 0, 0);
+        border-color: #ff4444;
+        color: #ff4444;
+    }
+    50% {
+        background-color: rgba(255, 0, 0, 0.5); /* Fond rouge plus vif */
+        box-shadow: 0 0 15px rgba(255, 0, 0, 0.6); /* Gros halo lumineux */
+        border-color: #ff0000;
+        color: #ffffff; /* Le texte devient blanc pour le contraste */
+        transform: scale(1.05); /* Grossit légèrement */
+    }
+    100% {
+        background-color: rgba(255, 0, 0, 0.2);
+        box-shadow: 0 0 0 rgba(255, 0, 0, 0);
+        border-color: #ff4444;
+        color: #ff4444;
+    }
+}
+
+/* La classe ajoutée par le JS */
+.date-late {
+    display: inline-block;       /* Important pour l'animation */
+    padding: 2px 8px;            /* Un peu d'espace autour du texte */
+    border-radius: 4px;          /* Bords arrondis */
+    border: 1px solid #ff4444;   /* Bordure rouge */
+    font-weight: bold;
+    
+    /* L'animation tourne en boucle */
+    animation: alarm-flash 1s infinite ease-in-out; 
+}
