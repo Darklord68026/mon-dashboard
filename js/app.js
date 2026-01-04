@@ -3,7 +3,6 @@ import { showLoginScreen, showDashboardScreen, startClock, renderTasks, updateTa
 import { login, register, logout } from './auth.js';
 import { initSocket } from './socket.js';
 import { initWeather } from './weather.js';
-import { log } from 'node:console';
 
 // --- CHARGEMENT DONNÉES ---
 
