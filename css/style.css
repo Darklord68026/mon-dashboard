@@ -278,3 +278,35 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     /* L'animation tourne en boucle */
     animation: alarm-flash 1s infinite ease-in-out; 
 }
+
+/* --- RESPONSIVE MOBILE --- */
+@media (max-width: 768px) {
+    body {
+        padding: 1rem; /* Moins de marge sur mobile */
+    }
+
+    /* Le dashboard passe en 1 seule colonne */
+    .dashboard-container {
+        grid-template-columns: 1fr; 
+    }
+
+    /* L'horloge devient plus petite */
+    .clock-floating {
+        font-size: 1.5rem;
+        top: 15px; right: 15px;
+    }
+    
+    /* Le bouton burger un peu plus gros pour les doigts */
+    .burger-icon {
+        padding: 12px 16px;
+    }
+
+    /* Les inputs prennent toute la largeur pour être faciles à taper */
+    .input-group {
+        flex-direction: column;
+    }
+    .input-group input, .input-group select, .input-group button {
+        width: 100%;
+        max-width: none !important; /* On force la largeur */
+    }
+}

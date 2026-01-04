@@ -8,6 +8,18 @@
     
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script type="module" src="js/app.js"></script>
+
+    <meta name="theme-color" content="#121212">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/4dabf7/ffffff?text=D">
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log("📱 App prête à être installée !"))
+                .catch(err => console.error("Erreur SW:", err));
+        }
+    </script>
 </head>
 <body>
 
