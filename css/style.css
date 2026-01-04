@@ -222,6 +222,27 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 #add-task-btn:hover { background: #339af0; }
 
+#sidebar-display {
+    /* Sécurité : Force le bas même si le contenu au-dessus est vide */
+    margin-top: auto; 
+    
+    /* Design */
+    padding: 20px;
+    border-top: 1px solid #333;
+    background: rgba(0, 0, 0, 0.2);
+    
+    /* Centrage du texte */
+    text-align: center;
+}
+
+#sidebar-display h3 {
+    margin: 0; /* Important pour éviter les décalages */
+    color: #888;
+    font-size: 0.9rem; /* Taille lisible */
+    font-style: italic;
+    font-weight: normal; /* Pas de gras pour le footer */
+}
+
 /* --- ANIMATION RETARD (VERSION HARDCORE) --- */
 
 @keyframes alarm-flash {

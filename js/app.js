@@ -3,6 +3,7 @@ import { showLoginScreen, showDashboardScreen, startClock, renderTasks, updateTa
 import { login, register, logout } from './auth.js';
 import { initSocket } from './socket.js';
 import { initWeather } from './weather.js';
+import { log } from 'node:console';
 
 // --- CHARGEMENT DONNÉES ---
 
@@ -32,6 +33,11 @@ async function loadUserData() {
         const user = await res.json();
         // On envoie les tags à l'UI
         updateTagsState(user.tags);
+        const footerText = document.querySelector('#sidebar-display h3');
+        if (footerText && user.username) {
+            const pseudo = user.username.charAt(0).toUpperCase() + user.username.slice(1);
+            footerText.textContent = `Bonjour, ${pseudo} 👋`;
+        }
     } catch (err) {
         console.error("Erreur chargement user:", err);
     }
