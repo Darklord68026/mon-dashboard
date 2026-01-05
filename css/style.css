@@ -1,62 +1,79 @@
-/* Reset CSS */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* ================= VARIABLES & RESET ================= */
+:root {
+    --bg-dark: #121212;
+    --bg-card: #1e1e1e;
+    --bg-input: #2a2a2a;
+    --primary: #4dabf7;
+    --primary-hover: #339af0;
+    --danger: #ff6b6b;
+    --text-main: #ffffff;
+    --text-muted: #888888;
+    --border-color: #333333;
+    
+    --radius-md: 8px;
+    --radius-lg: 15px;
 }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #ffffff;
+    color: var(--text-main);
     line-height: 1.6;
     padding: 2rem;
-
-    /* GESTION DU FOND */
-    background-color: #121212; /* Couleur de repli */
-    background-size: cover; /* L'image couvre tout l'écran */
+    background-color: var(--bg-dark);
+    background-size: cover;
     background-position: center;
-    background-attachment: fixed; /* L'image ne bouge aps quand on scroll */
+    background-attachment: fixed;
     background-repeat: no-repeat;
-
-    /* Astuce pro : un dégradé sombre par dessus l'image pour le contraste */
-    /* Note: backgroundImage sera écrasé par le JS donc on ruse un peu */
-    transition: background-image 0.5s ease-in-out; /* Effet fondu sympa */
+    transition: background-image 0.5s ease-in-out;
 }
 
-/* Ecran de connexion centré */
+/* ================= UTILITAIRES ================= */
+.hidden { display: none !important; }
+
+.flex-between {
+    display: flex; justify-content: space-between; align-items: center;
+}
+
+/* Boutons icônes (croix, retour) */
+.btn-icon {
+    background: none; border: none; font-size: 1.5rem; cursor: pointer;
+    color: var(--text-main); padding: 0 5px; transition: transform 0.2s, color 0.2s;
+}
+.btn-icon:hover { transform: scale(1.1); color: var(--primary); }
+
+/* ================= AUTHENTIFICATION ================= */
 .login-container {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background-color: #121212;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: var(--bg-dark);
     display: flex; justify-content: center; align-items: center;
     z-index: 1000;
 }
 
 .login-box {
-    background: #1e1e1e;
-    padding: 3rem;
-    border-radius: 15px;
-    text-align: center;
-    width: 100%;
-    max-width: 400px;
+    background: var(--bg-card); padding: 3rem; border-radius: var(--radius-lg);
+    text-align: center; width: 100%; max-width: 400px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
 
 .login-box input {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 15px;
-    border-radius: 5px;
-    border: 1px solid #333;
-    background: #2c2c2c;
-    color: white;
+    width: 100%; padding: 12px; margin-bottom: 15px;
+    border-radius: 5px; border: 1px solid var(--border-color);
+    background: #2c2c2c; color: white;
 }
 
-.secondary-btn {
-    background-color: transparent;
-    border: 1px solid #4dabf7;
-    color: #4dabf7;
-    margin-left: 10px;
+.auth-buttons button {
+    padding: 10px 20px; font-size: 1rem; cursor: pointer;
+    border-radius: 5px; border: none; background: var(--primary); color: white;
+}
+.auth-buttons .secondary-btn {
+    background: transparent; border: 1px solid var(--primary); color: var(--primary); margin-left: 10px;
+}
+
+/* ================= DASHBOARD & WIDGETS ================= */
+.dashboard-container {
+    display: grid; grid-template-columns: repeat(autofit, minmax(400px, 1fr)); gap: 2rem;
 }
 
 header {
@@ -68,267 +85,148 @@ header {
     border-bottom: 1px solid #333;
 }
 
-h1 { font-size: 2.5rem; }
-.clock { font-size: 3rem; font-weight: bold; color: #ffffff; }
-
-/* Grille du dashboard */
-.dashboard-container {
-    display: grid;
-    /* Créer des colonnes automatiques de minimum 400px */
-    grid-template-columns: repeat(autofit, minmax(400px, 1fr));
-    gap: 2rem;
-}
-
-/* Style des "cartes" (Widgets) */
 .widget {
-    background-color: rgba(0, 0, 0, 0.6) !important; /* 60% opaque */
-    backdrop-filter: blur(10px); /* Effet de flou "verre dépoli" style Apple/Windows */
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(10px); padding: 2rem; border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-input {
-    padding: 10px;
-    margin-top: 10px;
-    margin-right: 10px;
-    font-size: 1.2rem;
-    width: 70%;
-    background-color: white;
+/* Inputs Dashboard */
+.input-group {
+    display: flex; gap: 8px; background: var(--bg-card); padding: 10px;
+    border-radius: 12px; border: 1px solid var(--border-color); flex-wrap: wrap;
 }
 
-button {
-    padding: 10px 20px;
-    font-size: 1.2rem;
-    background-color: #4dabf7;
-    border: none;
-    color: white;
-    cursor: pointer;
+.input-group input[type="text"] { flex-grow: 1; }
+.input-group select { width: 110px; }
+.input-group input[type="date"] { width: 130px; }
+
+.widget input, .widget select {
+    background: var(--bg-input); color: #eee; border: 1px solid #444;
+    padding: 10px 12px; border-radius: var(--radius-md); outline: none;
+}
+.widget input:focus, .widget select:focus { border-color: var(--primary); background: #333; }
+
+#add-task-btn {
+    background: var(--primary); color: white; border: none; padding: 0 20px;
+    border-radius: var(--radius-md); cursor: pointer; font-weight: bold;
 }
 
-/* Fond sombre transparent derrière le modal */
-.modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8);
-    display: flex; justify-content: center; align-items: center;
-    z-index: 2000;
-}
-
-.modal-box {
-    background: #1e1e1e; padding: 2rem; border-radius: 15px;
-    width: 90%; max-width: 400px;
-    border: 1px solid #444;
-}
-
-.tag-item {
+/* Liste des tâches (Sélecteurs corrigés !) */
+#task-list li {
     display: flex; justify-content: space-between; align-items: center;
-    background: #2c2c2c; padding: 8px; margin-bottom: 5px; border-radius: 5px;
+    background: #2c2c2c; padding: 12px; margin-bottom: 8px;
+    border-radius: var(--radius-md); box-shadow: 0 4px rgba(0,0,0,0.3);
+    border-left: 6px solid #888; /* Couleur par défaut */
 }
 
-.color-dot {
-    width: 15px; height: 15px; border-radius: 50%; margin-right: 10px;
+/* Contenu de la tâche */
+.task-content { flex-grow: 1; }
+.task-text { font-weight: 500; font-size: 1rem; display: block; }
+.task-meta { display: flex; gap: 10px; align-items: center; margin-top: 5px; }
+
+.task-tag {
+    padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: bold;
 }
 
-/* ================= NOUVEAU CSS ================= */
+.delete-btn {
+    background: transparent; border: none; color: #666; font-size: 1.2rem; cursor: pointer; padding: 5px;
+}
+.delete-btn:hover { color: var(--danger); transform: scale(1.2); }
 
-/* --- 1. BOUTON BURGER & HORLOGE FLOTTANTE --- */
+/* ================= NAVIGATION ================= */
 .burger-icon {
-    background-color: rgba(0, 0, 0, 0.6) !important; /* 60% opaque */
-    backdrop-filter: blur(10px); /* Effet de flou "verre dépoli" style Apple/Windows */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 8px 12px; border-radius: 8px;
-    font-size: 1.5rem; cursor: pointer; z-index: 1100;
-    transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px 12px; border-radius: 8px;
+    font-size: 1.5rem; cursor: pointer; z-index: 1100; color: white;
 }
-.burger-icon:hover { background: #333; border-color: #666; }
 
 .clock-floating {
-    font-size: 2.5rem;
-    font-weight: bold;
-    text-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 100;
+    position: fixed; top: 20px; right: 20px;
+    font-size: 2.5rem; font-weight: bold; text-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 100;
 }
 
-/* --- 2. SIDEBAR (Menu Latéral) --- */
 .sidebar {
-    position: fixed; top: 0; left: 0;
-    width: 280px; height: 100%;
-    background: #121212; border-right: 1px solid #333;
-    z-index: 1200; /* Au-dessus de tout */
-    display: flex; flex-direction: column;
-    box-shadow: 5px 0 20px rgba(0,0,0,0.7);
-    /* Animation de glissement */
-    transform: translateX(-100%); /* Caché à gauche par défaut */
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: fixed; top: 0; left: 0; width: 280px; height: 100%;
+    background: var(--bg-dark); border-right: 1px solid var(--border-color);
+    z-index: 1200; display: flex; flex-direction: column;
+    transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-/* Classe ajoutée par le JS pour le faire apparaître */
 .sidebar.active { transform: translateX(0); }
 
-.sidebar-header {
-    padding: 20px; display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 1px solid #333; background: #1a1a1a;
-}
-
-.close-btn { background: none; border: none; color: white; font-size: 2rem; cursor: pointer; }
+.sidebar-header { padding: 20px; background: #1a1a1a; border-bottom: 1px solid var(--border-color); }
 .sidebar-content { padding: 20px; flex-grow: 1; }
 
 .menu-item {
     width: 100%; background: transparent; border: none; color: #ccc;
     padding: 15px; text-align: left; margin-bottom: 5px;
-    border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 1rem;
+    border-radius: var(--radius-md); cursor: pointer; font-size: 1rem;
     display: flex; align-items: center; gap: 10px;
 }
 .menu-item:hover { background: #2c2c2c; color: white; transform: translateX(5px); }
-.menu-item.danger { color: #ff6b6b; margin-top: auto; border: 1px solid #ff6b6b33; }
+.menu-item.danger { color: var(--danger); margin-top: auto; border: 1px solid #ff6b6b33; }
 .menu-item.danger:hover { background: #ff6b6b22; }
 
-#select-params {
-    display: grid;
+#sidebar-display {
+    margin-top: auto; padding: 20px; border-top: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.2); text-align: center;
+}
+#sidebar-display h3 { margin: 0; color: var(--text-muted); font-size: 0.9rem; font-style: italic; font-weight: normal; }
+
+/* ================= MODAL & PARAMÈTRES ================= */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 2000;
+}
+.modal-box {
+    background: var(--bg-card); padding: 2rem; border-radius: 15px;
+    width: 90%; max-width: 400px; border: 1px solid #444;
 }
 
-#select-params button { background: transparent; border: none; border-radius: 5px; text-align: left;}
-#select-params button#back-to-settings-modal { font-weight: bold;}
+/* Paramètres Navigation */
+#select-params { display: grid; gap: 10px; }
+#select-params button {
+    background: transparent; border: none; border-radius: 5px; text-align: left;
+    padding: 10px; color: #ccc; cursor: pointer;
+}
 #select-params button:hover { background: #2c2c2c; color: white; transform: translateX(5px); }
 
-#params-header {
-    display: flex;
-    margin-bottom: 5px;
+/* Tags */
+.userTags { display: flex; align-items: center; }
+.color-dot { width: 15px; height: 15px; border-radius: 50%; margin-right: 10px; }
+.tag-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #2c2c2c; padding: 8px; margin-bottom: 5px; border-radius: 5px;
 }
+.add-tag-form { display: flex; gap: 10px; border-top: 1px solid #444; padding-top: 15px; }
+.add-tag-form input[type="text"] { flex: 1; }
+.add-tag-form input[type="color"] { width: 40px; height: 40px; border: none; cursor: pointer; padding: 0; }
+.add-tag-form button { width: 40px; background: var(--primary); border: none; color: white; border-radius: 5px; cursor: pointer; }
 
-#params-header .close-settings-btn {
-    margin-left: auto;
-    padding: 0;
+/* Sécurité */
+#input-newPassword {
+    width: 100%; padding: 10px; margin-bottom: 10px;
+    background: var(--bg-input); border: 1px solid #444; color: white; border-radius: 5px;
 }
-
-#params-header .close-settings-btn:hover {
-    transform: none;
+#btn-updatePassword {
+    width: 100%; background: #555; border: none; padding: 10px; color: white; border-radius: 5px; cursor: pointer;
 }
+#btn-updatePassword:hover { background: #666; }
 
-/* --- 3. INPUTS & SELECTS --- */
-.input-group {
-    display: flex; gap: 8px; background: #1e1e1e; padding: 10px;
-    border-radius: 12px; border: 1px solid #333; flex-wrap: wrap;
-}
-
-/* Style commun pour tous les champs */
-.todo-widget input[type="text"],
-.todo-widget input[type="date"],
-.todo-widget select {
-    background: #2a2a2a; color: #eee; border: 1px solid #444;
-    padding: 10px 12px; border-radius: 8px; outline: none;
-    font-family: inherit; transition: border-color 0.2s;
-}
-
-.todo-widget input:focus, .todo-widget select:focus {
-    border-color: #4dabf7; background: #333;
-}
-
-/* Customisation du Select pour virer la flèche moche */
-.todo-widget select {
-    appearance: none; -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: right 8px center;
-    background-size: 16px; padding-right: 30px; cursor: pointer;
-}
-
-/* Customisation du Calendrier pour qu'il soit blanc */
-input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(0.8); cursor: pointer;
-}
-
-#add-task-btn {
-    background: #4dabf7; color: white; border: none; padding: 0 20px;
-    border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s;
-}
-#add-task-btn:hover { background: #339af0; }
-
-#sidebar-display {
-    /* Sécurité : Force le bas même si le contenu au-dessus est vide */
-    margin-top: auto; 
-    
-    /* Design */
-    padding: 20px;
-    border-top: 1px solid #333;
-    background: rgba(0, 0, 0, 0.2);
-    
-    /* Centrage du texte */
-    text-align: center;
-}
-
-#sidebar-display h3 {
-    margin: 0; /* Important pour éviter les décalages */
-    color: #888;
-    font-size: 0.9rem; /* Taille lisible */
-    font-style: italic;
-    font-weight: normal; /* Pas de gras pour le footer */
-}
-
-/* --- ANIMATION RETARD (VERSION HARDCORE) --- */
-
+/* ================= ANIMATIONS ================= */
 @keyframes alarm-flash {
-    0% {
-        background-color: rgba(255, 0, 0, 0.2); /* Fond rouge sombre */
-        box-shadow: 0 0 0 rgba(255, 0, 0, 0);
-        border-color: #ff4444;
-        color: #ff4444;
-    }
-    50% {
-        background-color: rgba(255, 0, 0, 0.5); /* Fond rouge plus vif */
-        box-shadow: 0 0 15px rgba(255, 0, 0, 0.6); /* Gros halo lumineux */
-        border-color: #ff0000;
-        color: #ffffff; /* Le texte devient blanc pour le contraste */
-        transform: scale(1.05); /* Grossit légèrement */
-    }
-    100% {
-        background-color: rgba(255, 0, 0, 0.2);
-        box-shadow: 0 0 0 rgba(255, 0, 0, 0);
-        border-color: #ff4444;
-        color: #ff4444;
-    }
+    0%, 100% { border-color: var(--danger); color: var(--danger); }
+    50% { border-color: #ff0000; color: white; transform: scale(1.05); text-shadow: 0 0 10px red; }
 }
-
-/* La classe ajoutée par le JS */
 .date-late {
-    display: inline-block;       /* Important pour l'animation */
-    padding: 2px 8px;            /* Un peu d'espace autour du texte */
-    border-radius: 4px;          /* Bords arrondis */
-    border: 1px solid #ff4444;   /* Bordure rouge */
-    font-weight: bold;
-    
-    /* L'animation tourne en boucle */
-    animation: alarm-flash 1s infinite ease-in-out; 
+    display: inline-block; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--danger); font-weight: bold;
+    animation: alarm-flash 1s infinite ease-in-out;
 }
 
-/* --- RESPONSIVE MOBILE --- */
+/* ================= RESPONSIVE ================= */
 @media (max-width: 768px) {
-    body {
-        padding: 1rem; /* Moins de marge sur mobile */
-    }
-
-    /* Le dashboard passe en 1 seule colonne */
-    .dashboard-container {
-        grid-template-columns: 1fr; 
-    }
-
-    /* L'horloge devient plus petite */
-    .clock-floating {
-        font-size: 1.5rem;
-        top: 15px; right: 15px;
-    }
-    
-    /* Le bouton burger un peu plus gros pour les doigts */
-    .burger-icon {
-        padding: 12px 16px;
-    }
-
-    /* Les inputs prennent toute la largeur pour être faciles à taper */
-    .input-group {
-        flex-direction: column;
-    }
-    .input-group input, .input-group select, .input-group button {
-        width: 100%;
-        max-width: none !important; /* On force la largeur */
-    }
+    .dashboard-container { grid-template-columns: 1fr; }
+    .clock-floating { font-size: 1.5rem; top: 15px; right: 15px; }
+    .input-group { flex-direction: column; }
+    .input-group input, .input-group select, .input-group button { width: 100%; max-width: none !important; }
 }

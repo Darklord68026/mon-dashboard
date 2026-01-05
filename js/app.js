@@ -6,18 +6,13 @@ import { initWeather } from './weather.js';
 
 let currentUserId = null;
 
-// --- CHARGEMENT DONNÉES ---
-
 export function checkAuth() {
     const token = getToken();
     if (token) {
         showDashboardScreen();
         startClock();
-        
-        // On lance tout en parallèle
-        loadUserData(); // Charge les tags
-        loadTasks();    // Charge les tâches
-        
+        loadUserData();
+        loadTasks();
         initSocket();
         initWeather();
     } else {
@@ -32,7 +27,6 @@ async function loadUserData() {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const user = await res.json();
-        // On envoie les tags à l'UI
         updateTagsState(user.tags);
         const footerText = document.querySelector('#sidebar-display h3');
         if (footerText && user.username) {
@@ -41,7 +35,7 @@ async function loadUserData() {
         }
         currentUserId = user._id;
     } catch (err) {
-        console.error("Erreur chargement user:", err);
+        console.error("Erreur user:", err);
     }
 }
 
@@ -59,18 +53,15 @@ async function loadTasks() {
     }
 }
 
-// --- ACTIONS ---
-
 export async function addTask() {
     const input = document.getElementById('task-input');
-    const categorySelect = document.getElementById('task-category-select'); // Nouveau
-    const dateInput = document.getElementById('task-date-input');         // Nouveau
+    const categorySelect = document.getElementById('task-category-select');
+    const dateInput = document.getElementById('task-date-input');
     
     const text = input.value;
     if (!text) return;
 
     const token = getToken();
-    
     const payload = {
         text: text,
         category: categorySelect ? categorySelect.value : "Général",
@@ -85,9 +76,7 @@ export async function addTask() {
         },
         body: JSON.stringify(payload)
     });
-    
     input.value = "";
-    // On ne vide pas forcément la date pour enchainer les devoirs ;)
 }
 
 export async function deleteTask(id) {
@@ -98,78 +87,46 @@ export async function deleteTask(id) {
     });
 }
 
-// Nouvelle fonction : Ajouter un Tag via le modal
 export async function addNewTag() {
     const nameInput = document.getElementById('new-tag-name');
     const colorInput = document.getElementById('new-tag-color');
     const name = nameInput.value;
     const color = colorInput.value;
-
     if (!name) return;
-
     const token = getToken();
     try {
-        // 1. Récupérer tags actuels
-        const resGet = await fetch(`${API_URL}/user/me`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const resGet = await fetch(`${API_URL}/user/me`, { headers: { 'Authorization': `Bearer ${token}` } });
         const user = await resGet.json();
         const currentTags = user.tags;
-
-        // 2. Ajouter le nouveau
         currentTags.push({ name, color });
-
-        // 3. Sauvegarder
         const resPut = await fetch(`${API_URL}/user/tags`, {
             method: 'PUT',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ tags: currentTags })
         });
         const newTags = await resPut.json();
-        
-        // 4. Mettre à jour l'UI
         updateTagsState(newTags);
         nameInput.value = "";
-    } catch (err) {
-        alert("Erreur ajout tag");
-    }
+    } catch (err) { alert("Erreur ajout tag"); }
 }
-
-// --- ÉVÉNEMENTS ---
 
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
 
-    // --- GESTION DE LA NOUVELLE SIDEBAR ---
+    // SIDEBAR
     const sidebar = document.getElementById('sidebar');
     const burgerBtn = document.getElementById('burger-btn');
     const closeSidebarBtn = document.getElementById('close-sidebar-btn');
 
-    // Ouvrir le menu
-    if (burgerBtn) {
-        burgerBtn.onclick = () => sidebar.classList.add('active');
-    }
-
-    // Fermer le menu
-    if (closeSidebarBtn) {
-        closeSidebarBtn.onclick = () => sidebar.classList.remove('active');
-    }
-
-    // Fermer en cliquant en dehors du menu
+    if (burgerBtn) burgerBtn.onclick = () => sidebar.classList.add('active');
+    if (closeSidebarBtn) closeSidebarBtn.onclick = () => sidebar.classList.remove('active');
     document.addEventListener('click', (e) => {
-        if (sidebar.classList.contains('active') && 
-            !sidebar.contains(e.target) && 
-            !burgerBtn.contains(e.target)) {
+        if (sidebar.classList.contains('active') && !sidebar.contains(e.target) && !burgerBtn.contains(e.target)) {
             sidebar.classList.remove('active');
         }
     });
-    // --------------------------------------
 
-
-    // Auth Listeners
+    // AUTH
     document.querySelector('#login-screen button:first-of-type').onclick = () => {
         const u = document.getElementById('username').value;
         const p = document.getElementById('password').value;
@@ -181,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         register(u, p);
     };
 
-    // Dashboard Listeners
+    // DASHBOARD
     const btnAdd = document.getElementById('add-task-btn');
     if (btnAdd) btnAdd.onclick = addTask;
     
@@ -189,60 +146,58 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') addTask();
     });
 
-    // --- GESTION DES PARAMÈTRES & LOGOUT (DANS LA SIDEBAR) ---
-    
-    // Bouton Logout
-    const btnLogout = document.getElementById('logout-btn');
-    if (btnLogout) btnLogout.onclick = logout;
-
-    // Modal Paramètres
+    // --- MODAL PARAMETRES (Gestion via classes CSS) ---
     const settingsModal = document.getElementById('settings-modal');
-    const selectParams = document.getElementById('select-params')
+    const selectParams = document.getElementById('select-params');
     const tagsModal = document.getElementById('tags');
     const securityModal = document.getElementById('security');
     
-    // Ouvrir les paramètres (depuis la sidebar)
+    // Ouvrir
     const btnOpenSettings = document.getElementById('open-settings-btn');
-    const btnTags = document.getElementById('open-settings-tags-btn');
-    const btnSecurity = document.getElementById('open-settings-security-btn');
     if (btnOpenSettings) {
         btnOpenSettings.onclick = () => {
-            settingsModal.style.display = 'flex';
-            sidebar.classList.remove('active'); // On ferme le menu pour y voir clair
+            settingsModal.classList.remove('hidden');
+            selectParams.classList.remove('hidden');
+            tagsModal.classList.add('hidden');
+            securityModal.classList.add('hidden');
+            sidebar.classList.remove('active');
         };
-    };
+    }
+
+    // Navigation sous-menus
+    const btnTags = document.getElementById('open-settings-tags-btn');
     if (btnTags) {
         btnTags.onclick = () => {
-            selectParams.style.display = 'none';
-            tagsModal.style.display = 'block';
-        }
-    };
+            selectParams.classList.add('hidden');
+            tagsModal.classList.remove('hidden');
+        };
+    }
+    const btnSecurity = document.getElementById('open-settings-security-btn');
     if (btnSecurity) {
         btnSecurity.onclick = () => {
-            selectParams.style.display = 'none';
-            securityModal.style.display = 'block';
-        }
-    };
+            selectParams.classList.add('hidden');
+            securityModal.classList.remove('hidden');
+        };
+    }
 
-    const btnupdatePassword = document.getElementById('btn-updatePassword')
-    btnupdatePassword.onclick = () => {
-        const p = document.getElementById('input-newPassword').value
-        const userId = currentUserId;
-        updatePassword(p, userId);
-    };
-
-    // Fermer le modal
-    const btnCloseSettings = document.querySelectorAll('.close-settings-btn');
-    btnCloseSettings.forEach(btn => {
+    // Boutons fermeture (croix)
+    const closeButtons = document.querySelectorAll('.close-settings-btn');
+    closeButtons.forEach(btn => {
         btn.onclick = () => {
-            selectParams.style = '';
-            tagsModal.style.display = 'none';
-            securityModal.style.display = 'none';
-            settingsModal.style.display = 'none';
+            settingsModal.classList.add('hidden');
         };
     });
 
-    // Ajouter un tag (dans le modal)
+    // Update Password
+    const btnupdatePassword = document.getElementById('btn-updatePassword');
+    if (btnupdatePassword) {
+        btnupdatePassword.onclick = () => {
+            const p = document.getElementById('input-newPassword').value;
+            updatePassword(p, currentUserId);
+        };
+    }
+
+    // Add Tag
     const btnAddTag = document.getElementById('add-tag-btn');
     if (btnAddTag) btnAddTag.onclick = addNewTag;
 });
