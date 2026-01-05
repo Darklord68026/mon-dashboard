@@ -1,8 +1,10 @@
 import { API_URL, getToken } from './config.js';
 import { showLoginScreen, showDashboardScreen, startClock, renderTasks, updateTagsState } from './ui.js';
-import { login, register, logout } from './auth.js';
+import { login, register, logout, updatePassword } from './auth.js';
 import { initSocket } from './socket.js';
 import { initWeather } from './weather.js';
+
+let currentUserId = null;
 
 // --- CHARGEMENT DONNÉES ---
 
@@ -37,6 +39,7 @@ async function loadUserData() {
             const pseudo = user.username.charAt(0).toUpperCase() + user.username.slice(1);
             footerText.textContent = `Bonjour, ${pseudo} 👋`;
         }
+        currentUserId = user._id;
     } catch (err) {
         console.error("Erreur chargement user:", err);
     }
@@ -207,19 +210,26 @@ document.addEventListener('DOMContentLoaded', () => {
             settingsModal.style.display = 'flex';
             sidebar.classList.remove('active'); // On ferme le menu pour y voir clair
         };
-    }
+    };
     if (btnTags) {
         btnTags.onclick = () => {
             selectParams.style.display = 'none';
             tagsModal.style.display = 'block';
         }
-    }
+    };
     if (btnSecurity) {
         btnSecurity.onclick = () => {
             selectParams.style.display = 'none';
             securityModal.style.display = 'block';
         }
-    }
+    };
+
+    const btnupdatePassword = document.getElementById('btn-updatePassword')
+    btnupdatePassword.onclick = () => {
+        const p = document.getElementById('input-newPassword').value
+        const userId = currentUserId;
+        updatePassword(p, userId);
+    };
 
     // Fermer le modal
     const btnCloseSettings = document.querySelectorAll('.close-settings-btn');
