@@ -184,7 +184,19 @@ button {
 .menu-item.danger { color: #ff6b6b; margin-top: auto; border: 1px solid #ff6b6b33; }
 .menu-item.danger:hover { background: #ff6b6b22; }
 
-/* --- 3. INPUTS & SELECTS SEXY --- */
+#select-params {
+    display: grid;
+}
+
+#select-params button { background: transparent; border: none; border-radius: 5px; text-align: left;}
+#select-params button#back-to-settings-modal { font-weight: bold;}
+#select-params button:hover { background: #2c2c2c; color: white; transform: translateX(5px); }
+
+#select-params h2 {
+    margin-bottom: 5px;
+}
+
+/* --- 3. INPUTS & SELECTS --- */
 .input-group {
     display: flex; gap: 8px; background: #1e1e1e; padding: 10px;
     border-radius: 12px; border: 1px solid #333; flex-wrap: wrap;

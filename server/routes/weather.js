@@ -21,6 +21,7 @@ router.get('/background', async (req, res) => {
         const response = await axios.get(unsplashUrl);
         res.json(response.data);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: "Erreur récupération image" });
     }
 });

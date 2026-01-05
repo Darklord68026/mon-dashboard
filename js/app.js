@@ -194,21 +194,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Modal Paramètres
     const settingsModal = document.getElementById('settings-modal');
+    const selectParams = document.getElementById('select-params')
+    const tagsModal = document.getElementById('tags');
+    const securityModal = document.getElementById('security');
     
     // Ouvrir les paramètres (depuis la sidebar)
     const btnOpenSettings = document.getElementById('open-settings-btn');
+    const btnTags = document.getElementById('open-settings-tags-btn');
+    const btnSecurity = document.getElementById('open-settings-security-btn');
     if (btnOpenSettings) {
         btnOpenSettings.onclick = () => {
             settingsModal.style.display = 'flex';
             sidebar.classList.remove('active'); // On ferme le menu pour y voir clair
         };
     }
+    if (btnTags) {
+        btnTags.onclick = () => {
+            selectParams.style.display = 'none';
+            tagsModal.style.display = 'block';
+        }
+    }
+    if (btnSecurity) {
+        btnSecurity.onclick = () => {
+            selectParams.style.display = 'none';
+            securityModal.style.display = 'block';
+        }
+    }
 
     // Fermer le modal
-    const btnCloseSettings = document.getElementById('close-settings-btn');
-    if (btnCloseSettings) {
-        btnCloseSettings.onclick = () => settingsModal.style.display = 'none';
-    }
+    const btnCloseSettings = document.querySelectorAll('.close-settings-btn');
+    btnCloseSettings.forEach(btn => {
+        btn.onclick = () => {
+            selectParams.style = '';
+            tagsModal.style.display = 'none';
+            securityModal.style.display = 'none';
+            settingsModal.style.display = 'none';
+        };
+    });
 
     // Ajouter un tag (dans le modal)
     const btnAddTag = document.getElementById('add-tag-btn');

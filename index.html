@@ -87,17 +87,32 @@
 
     <div id="settings-modal" class="modal-overlay" style="display: none;">
         <div class="modal-box">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h3 style="margin:0;">⚙️ Gérer les Tags</h3>
-                <button id="close-settings-btn" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:white;">&times;</button>
+            <div id="select-params">
+                <h2>Paramètres</h2>
+                <button type="button" id="open-settings-tags-btn">Tags</button>
+                <button type="button" id="open-settings-security-btn">Sécurité</button>
+                <button type="button" id="back-to-settings-modal">&larr; Retour</button>
             </div>
-            
-            <div id="settings-tags-list" style="margin-bottom: 20px; max-height: 200px; overflow-y: auto;"></div>
-            
-            <div class="add-tag-form" style="display:flex; gap:10px; border-top:1px solid #444; padding-top:15px;">
-                <input type="text" id="new-tag-name" placeholder="Nom (ex: Sport)" style="flex:1;">
-                <input type="color" id="new-tag-color" value="#ff0000" style="width: 40px; padding:0; border:none; height:40px; cursor:pointer;">
-                <button id="add-tag-btn" style="width:40px;">+</button>
+            <div id="tags" style="display: none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 style="margin:0;">⚙️ Gérer les Tags</h3>
+                    <button class="close-settings-btn" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:white;">&times;</button>
+                </div>
+                
+                <div id="settings-tags-list" style="margin-bottom: 20px; max-height: 200px; overflow-y: auto;"></div>
+                
+                <div class="add-tag-form" style="display:flex; gap:10px; border-top:1px solid #444; padding-top:15px;">
+                    <input type="text" id="new-tag-name" placeholder="Nom (ex: Sport)" style="flex:1;">
+                    <input type="color" id="new-tag-color" value="#ff0000" style="width: 40px; padding:0; border:none; height:40px; cursor:pointer;">
+                    <button id="add-tag-btn" style="width:40px;">+</button>
+                </div>
+            </div>
+            <div id="security" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin:0;">⚙️ Gérer la sécurité</h3>
+                    <button class="close-settings-btn" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:white;">&times;</button>
+                </div>
+
             </div>
         </div>
     </div>
