@@ -1,5 +1,5 @@
 import { API_URL, getToken } from './config.js';
-import { showLoginScreen, showDashboardScreen, startClock, renderTasks, updateTagsState } from './ui.js';
+import { showLoginScreen, showDashboardScreen, startClock, renderTasks, updateTagsState, showToast } from './ui.js';
 import { login, register, logout, updatePassword } from './auth.js';
 import { initSocket } from './socket.js';
 import { initWeather } from './weather.js';
@@ -107,7 +107,8 @@ export async function addNewTag() {
         const newTags = await resPut.json();
         updateTagsState(newTags);
         nameInput.value = "";
-    } catch (err) { alert("Erreur ajout tag"); }
+        showToast("Tag ajouté avec succès !", "success");
+    } catch (err) { showToast("Erreur lors de l'ajout du tag", "error"); }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

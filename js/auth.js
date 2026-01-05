@@ -1,6 +1,7 @@
 import { API_URL } from './config.js';
 import { checkAuth } from './app.js'; // Pour rafraîchir après login
 import { getToken } from './config.js';
+import { showToast } from './ui.js';
 
 export async function login(username, password) {
     try {
@@ -15,7 +16,7 @@ export async function login(username, password) {
         localStorage.setItem('token', data.token);
         checkAuth(); // On recharge l'état
     } catch (err) {
-        alert("Erreur Login: " + err.message);
+        showToast("Erreur Login: " + err.message, "error");
     }
 }
 
@@ -27,9 +28,9 @@ export async function register(username, password) {
             body: JSON.stringify({ username, password })
         });
         if (!res.ok) throw new Error("Erreur inscription");
-        alert("Compte créé ! Connectez-vous.");
+        showToast("Compte créé ! Connectez-vous.", "success");
     } catch (err) {
-        alert(err.message);
+        showToast(err.message, "error");
     }
 }
 
@@ -42,7 +43,7 @@ export async function updatePassword(newPassword) {
     const token = getToken(); // On récupère le jeton JWT
 
     if (!token) {
-        alert("Vous devez être connecté !");
+        showToast("Vous devez être connecté !", "error");
         return;
     }
 
@@ -62,12 +63,12 @@ export async function updatePassword(newPassword) {
         
         if (!res.ok) throw new Error(data.error || "Erreur inconnue");
 
-        alert("Mot de passe modifié !");
+        showToast("Mot de passe modifié !", "success");
         
         // Optionnel : Tu peux déconnecter l'user pour qu'il se reconnecte avec le nouveau MDP
         // logout(); 
 
     } catch (err) {
-        alert("Erreur : " + err.message);
+        showToast("Erreur : " + err.message, "error");
     }
 }

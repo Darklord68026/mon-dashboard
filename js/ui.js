@@ -156,3 +156,39 @@ export function updateWeatherUI(data) {
         </div>
     `;
 }
+
+// --- SYSTÈME DE NOTIFICATIONS (TOASTS) ---
+
+export function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    // 1. Création de l'élément
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`; // ex: "toast success"
+    
+    // 2. Choix de l'icône
+    let icon = 'ℹ️';
+    if (type === 'success') icon = '✅';
+    if (type === 'error') icon = '❌';
+
+    // 3. Contenu HTML
+    toast.innerHTML = `
+        <span style="font-size: 1.2rem;">${icon}</span>
+        <span>${message}</span>
+    `;
+
+    // 4. Ajout au DOM
+    container.appendChild(toast);
+
+    // 5. Suppression Automatique (Timer)
+    setTimeout(() => {
+        // Animation de sortie avant de supprimer
+        toast.style.animation = "fadeOutToast 0.5s forwards";
+        
+        // On attend la fin de l'animation pour le retirer du HTML
+        toast.addEventListener('animationend', () => {
+            toast.remove();
+        });
+    }, 3000); // Disparaît après 3 secondes
+}
