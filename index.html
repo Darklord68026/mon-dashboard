@@ -64,6 +64,19 @@
 
             <section class="widget todo-widget">
                 <h2>À faire</h2>
+
+                <div class="input-group flex-between" style="margin-bottom: 15px; background: transparent; border: none; padding: 0;">
+                    <select id="filter-tag" style="width: 48%; cursor: pointer;">
+                        <option value="all">Tout voir</option>
+                        </select>
+
+                    <select id="sort-order" style="width: 48%; cursor: pointer;">
+                        <option value="date-asc">📅 Urgent d'abord</option>
+                        <option value="date-desc">📅 Moins urgent</option>
+                        <option value="recent">✨ Récents</option>
+                    </select>
+                </div>
+
                 <ul id="task-list"></ul>
                 
                 <div class="input-group">
@@ -120,6 +133,6 @@
     </div>
 
     <div id="toast-container"></div>
-    
+
 </body>
 </html>

@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # Surveille le dossier "server" (Backend)
+  - package-ecosystem: "npm"
+    directory: "/server" 
+    schedule:
+      interval: "weekly" # Vérifie une fois par semaine
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"

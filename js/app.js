@@ -1,5 +1,5 @@
 import { API_URL, getToken } from './config.js';
-import { showLoginScreen, showDashboardScreen, startClock, renderTasks, updateTagsState, showToast } from './ui.js';
+import { showLoginScreen, showDashboardScreen, startClock, renderTasks, updateTagsState, showToast, setTaskFilters } from './ui.js';
 import { login, register, logout, updatePassword } from './auth.js';
 import { initSocket } from './socket.js';
 import { initWeather } from './weather.js';
@@ -201,4 +201,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add Tag
     const btnAddTag = document.getElementById('add-tag-btn');
     if (btnAddTag) btnAddTag.onclick = addNewTag;
+
+    // --- GESTION DES FILTRES DE TÂCHES ---
+    const filterSelect = document.getElementById('filter-tag');
+    const sortSelect = document.getElementById('sort-order');
+
+    if (filterSelect) {
+        filterSelect.onchange = (e) => {
+            setTaskFilters(e.target.value, null);
+        };
+    }
+
+    if (sortSelect) {
+        sortSelect.onchange = (e) => {
+            setTaskFilters(null, e.target.value);
+        };
+    }
 });

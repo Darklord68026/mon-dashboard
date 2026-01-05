@@ -1,11 +1,34 @@
 import { deleteTask } from './app.js';
 
 let userTags = [];
+let allTasksCache = []; // On garde une copie de toutes les tâches
+let currentFilter = 'all';
+let currentSort = 'date-asc'; // Par défaut : le plus urgent en haut
 
 export function updateTagsState(tags) {
     userTags = tags;
     renderTagSelect();
+    renderFilterSelect();
     renderSettingsList();
+}
+
+function renderFilterSelect() {
+    const select = document.getElementById('filter-tag');
+    if (!select) return;
+    
+    // On garde la valeur actuelle si on rafraîchit
+    const currentVal = select.value;
+    
+    select.innerHTML = '<option value="all">Tout voir</option>';
+
+    userTags.forEach(tag => {
+        const option = document.createElement('option');
+        option.value = tag.name;
+        option.textContent = tag.name;
+        select.appendChild(option);
+    });
+    
+    if (currentVal) select.value = currentVal;
 }
 
 function renderTagSelect() {
@@ -60,9 +83,73 @@ export function startClock() {
 }
 
 export function renderTasks(tasks) {
+    // 1. Mise à jour du cache seulement si on reçoit de nouvelles données
+    if (tasks && Array.isArray(tasks)) {
+        allTasksCache = tasks;
+    }
+
+    // 2. On travaille sur une copie
+    let filteredTasks = [...allTasksCache];
+
+    // 3. A. FILTRAGE
+    if (currentFilter !== 'all') {
+        filteredTasks = filteredTasks.filter(t => t.category === currentFilter);
+    }
+
+    // 3. B. TRI (La partie critique)
+    filteredTasks.sort((a, b) => {
+        // --- CAS 1 : Tri par "Récents" (basé sur l'ID ou createdAt) ---
+        if (currentSort === 'recent') {
+            // Sécurité : si pas de date de création, on prend l'ID
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return dateB - dateA; // Plus grand (récent) en premier
+        } 
+        
+        // --- CAS 2 : Tri par Date Limite (Urgent / Pas Urgent) ---
+        else if (currentSort === 'date-asc' || currentSort === 'date-desc') {
+            // A. Gestion des sans-dates : On les met TOUJOURS à la fin
+            // Si A n'a pas de date, il part au fond (return 1)
+            if (!a.dueDate) return 1;
+            // Si B n'a pas de date, il part au fond (return -1) -> A passe devant
+            if (!b.dueDate) return -1;
+
+            // B. Conversion en nombres (Timestamp) pour éviter les bugs
+            const timeA = new Date(a.dueDate).getTime();
+            const timeB = new Date(b.dueDate).getTime();
+
+            // C. Sécurité ultime : Si la date est invalide (NaN), on la traite comme null
+            if (isNaN(timeA)) return 1;
+            if (isNaN(timeB)) return -1;
+
+            // D. Le calcul final
+            if (currentSort === 'date-asc') {
+                return timeA - timeB; // Urgent (petit chiffre) en premier
+            } else {
+                return timeB - timeA; // Loin (grand chiffre) en premier
+            }
+        }
+        return 0;
+    });
+
+    // 4. Affichage
     const taskList = document.getElementById('task-list');
+    if (!taskList) return; // Sécurité si le HTML n'est pas chargé
+    
     taskList.innerHTML = '';
-    tasks.forEach(task => appendTaskToUI(task));
+    
+    if (filteredTasks.length === 0) {
+        // Petit message sympa si rien ne matche
+        taskList.innerHTML = '<li style="text-align:center; padding:20px; color:#666;">Aucune tâche trouvée 🧐</li>';
+    } else {
+        filteredTasks.forEach(task => appendTaskToUI(task));
+    }
+}
+
+export function setTaskFilters(filter, sort) {
+    if (filter !== null) currentFilter = filter;
+    if (sort !== null) currentSort = sort;
+    renderTasks(); // On relance le rendu avec les données en cache
 }
 
 export function appendTaskToUI(task) {
