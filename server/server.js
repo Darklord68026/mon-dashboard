@@ -15,7 +15,11 @@ const weatherRoutes = require('./routes/weather');
 const app = express();
 const PORT = 3000;
 
-app.use(cors());
+app.use(cors({
+    origin: '*', // En prod, tu mettras ton domaine (ex: https://mon-dashboard.com)
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // --- CONFIG SOCKET.IO ---

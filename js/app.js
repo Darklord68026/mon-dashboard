@@ -26,6 +26,7 @@ async function loadUserData() {
         const res = await fetch(`${API_URL}/user/me`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+        if (res.status === 401) { logout(); return; }
         const user = await res.json();
         updateTagsState(user.tags);
         const footerText = document.querySelector('#sidebar-display h3');
@@ -35,6 +36,7 @@ async function loadUserData() {
         }
         currentUserId = user._id;
     } catch (err) {
+        if (res.status === 401) { logout(); return; }
         console.error("Erreur user:", err);
     }
 }
@@ -45,10 +47,11 @@ async function loadTasks() {
         const res = await fetch(`${API_URL}/tasks`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (res.status === 400) { logout(); return; }
+        if (res.status === 401) { logout(); return; }
         const tasks = await res.json();
         renderTasks(tasks);
     } catch (err) {
+        if (res.status === 401) { logout(); return; }
         console.error(err);
     }
 }
@@ -199,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Logout
-    const btnlogout = document.getElementById('lougout-btn');
+    const btnlogout = document.getElementById('logout-btn');
     if (btnlogout) {
         btnlogout.onclick = () => {
             logout

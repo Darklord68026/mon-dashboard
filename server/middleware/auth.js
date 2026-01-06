@@ -13,6 +13,6 @@ module.exports = function(req, res, next) {
         req.user = verified; // on attache les infos du user à la requête
         next(); // On laisse passer
     } catch (error) {
-        res.status(400).json({ error: "Token invalide" });
+        res.status(401).json({ error: "Token invalide" });
     }
 };
