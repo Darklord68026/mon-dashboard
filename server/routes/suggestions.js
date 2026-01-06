@@ -9,6 +9,10 @@ const User = require('../models/User');
 router.post('/', authMiddleware, async (req, res) => {
     try {
         const { text } = req.body;
+
+        if (!text || text.length > 500 ) {
+            return res.status(400).json({ error: "Texte invalide ou trop long"});
+        }
         
         // On récupère le pseudo de celui qui écrit
         const userId = req.user._id || req.user.userId;

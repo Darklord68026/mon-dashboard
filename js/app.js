@@ -155,6 +155,7 @@ async function sendSuggestion() {
     const text = input.value;
     
     if (!text.trim()) return; // On n'envoie pas de vide
+    if (text.length > 500) return showToast("Limite de caractères : 500", "error");
 
     const token = getToken(); // Ta fonction importée de config.js
 
@@ -201,14 +202,30 @@ async function loadSuggestions() {
         suggestions.forEach(sugg => {
             const li = document.createElement('li');
             li.className = 'suggestion-item';
-            
-            li.innerHTML = `
-                <div class="suggestion-content">
-                    <span class="suggestion-author">${sugg.author || 'Anonyme'}</span>
-                    <span class="suggestion-text">${sugg.text}</span>
-                </div>
-                <button class="delete-suggestion-btn" onclick="deleteSuggestion('${sugg._id}')">✕</button>
-            `;
+
+            // On construit les éléments un par un (plus sûr)
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'suggestion-content';
+
+            const authorSpan = document.createElement('span');
+            authorSpan.className = 'suggestion-author';
+            authorSpan.textContent = sugg.author || 'Anonyme'; // SÉCURISÉ
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'suggestion-text';
+            textSpan.textContent = sugg.text; // SÉCURISÉ (Les balises HTML seront affichées en texte brut)
+
+            const btn = document.createElement('button');
+            btn.className = 'delete-suggestion-btn';
+            btn.textContent = '✕';
+            btn.onclick = () => deleteSuggestion(sugg._id);
+
+            // Assemblage
+            contentDiv.appendChild(authorSpan);
+            contentDiv.appendChild(textSpan);
+            li.appendChild(contentDiv);
+            li.appendChild(btn);
+
             list.appendChild(li);
         });
 
