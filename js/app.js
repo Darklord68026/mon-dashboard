@@ -45,6 +45,7 @@ async function loadUserData() {
             }
         }
         currentUserId = user._id;
+        currentUserUsername = user._username;
     } catch (err) {
         console.error("Erreur user:", err);
     }

@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Suggestion = require('../models/Suggestion');
 const authMiddleware = require('../middleware/auth');
-const adminMiddleware = require('../middleware/admin')
+const adminMiddleware = require('../middleware/admin');
+const User = require('../models/User');
 
 // POST /api/suggestions (Envoyer une idée)
 router.post('/', authMiddleware, async (req, res) => {
@@ -10,7 +11,9 @@ router.post('/', authMiddleware, async (req, res) => {
         const { text } = req.body;
         
         // On récupère le pseudo de celui qui écrit
-        const authorName = req.user.username || "Anonyme"; 
+        const userId = req.user._id || req.user.userId;
+        const user = await User.findById(userId);
+        const authorName = user ? user.username : "Anonyme";
 
         const newSuggestion = new Suggestion({
             text: text,
