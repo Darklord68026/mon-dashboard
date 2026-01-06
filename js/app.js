@@ -45,7 +45,7 @@ async function loadTasks() {
         const res = await fetch(`${API_URL}/tasks`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (res.status === 401) { logout(); return; }
+        if (res.status === 400) { logout(); return; }
         const tasks = await res.json();
         renderTasks(tasks);
     } catch (err) {
