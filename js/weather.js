@@ -1,4 +1,5 @@
 import { API_URL } from './config.js';
+import { apiCall } from './api.js';
 import { updateWeatherUI, updateBackgroundUI, setWeatherLoading, setWeatherError } from './ui.js';
 
 // --- FONCTIONS UTILITAIRES (Privées) ---
@@ -77,16 +78,9 @@ async function fetchWeatherData(lat, lon) {
 }
 
 async function fetchBackground(weatherCode) {
-    // On utilise API_URL qui vient de config.js (gère localhost vs prod tout seul)
-    try {
-        const response = await fetch(`${API_URL}/background?code=${weatherCode}`);
-        if (!response.ok) throw new Error("Erreur image fond");
-        
-        const data = await response.json();
-        if (data.urls && data.urls.regular) {
-            updateBackgroundUI(data.urls.regular);
-        }
-    } catch (error) {
-        console.warn("Pas d'image de fond:", error.message);
+    const data = await apiCall(`/background?code=${weatherCode}`);
+
+    if (data && data.urls && data.urls.regular) {
+        updateBackgroundUI(data.urls.regular);
     }
 }

@@ -1,4 +1,5 @@
-import { API_URL, getToken } from './config.js';
+import { getToken } from './config.js';
+import { apiCall } from './api.js';
 import { showLoginScreen, showDashboardScreen, startClock, renderTasks, updateTagsState, showToast, setTaskFilters } from './ui.js';
 import { login, register, logout, updatePassword } from './auth.js';
 import { initSocket } from './socket.js';
@@ -22,48 +23,30 @@ export function checkAuth() {
 }
 
 async function loadUserData() {
-    const token = getToken();
-    try {
-        const res = await fetch(`${API_URL}/user/me`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.status === 401) { logout(); return; }
-        const user = await res.json();
-        updateTagsState(user.tags);
-        const footerText = document.querySelector('#sidebar-display h3');
-        if (footerText && user.username) {
-            const pseudo = user.username.charAt(0).toUpperCase() + user.username.slice(1);
-            footerText.textContent = `Bonjour, ${pseudo} 👋`;
-        }
-        const inboxBtn = document.getElementById('open-inbox-btn');
-        
-        if (inboxBtn) {
-            if (user.role === 'admin') {
-                inboxBtn.style.display = 'block';
-            } else {
-                inboxBtn.style.display = 'none';
-            }
-        }
-        currentUserId = user._id;
-        currentUserUsername = user._username;
-    } catch (err) {
-        console.error("Erreur user:", err);
+    const user = await apiCall('/user/me');
+    if (!user) return;
+
+    updateTagsState(user.tags);
+
+    const footerText = document.querySelector('#sidebar-display h3');
+    if (footerText && user.username) {
+        const pseudo = user.username.charAt(0).toUpperCase() + user.username.slice(1);
+        footerText.textContent = `Bonjour, ${pseudo} 👋`;
     }
+
+    // Gestion du bouton Admin
+    const inboxBtn = document.getElementById('open-inbox-btn');
+    if (inboxBtn) {
+        inboxBtn.style.display = (user.role === 'admin') ? 'block' : 'none';
+    }
+
+    currentUserId = user._id;
+    currentUserUsername = user.username;
 }
 
 async function loadTasks() {
-    const token = getToken();
-    try {
-        const res = await fetch(`${API_URL}/tasks`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.status === 401) { logout(); return; }
-        const tasks = await res.json();
-        renderTasks(tasks);
-    } catch (err) {
-        if (res.status === 401) { logout(); return; }
-        console.error(err);
-    }
+    const tasks = await apiCall('/tasks');
+    if (tasks) renderTasks(tasks);
 }
 
 export async function addTask() {
@@ -81,23 +64,13 @@ export async function addTask() {
         dueDate: dateInput ? dateInput.value : null
     };
 
-    await fetch(`${API_URL}/tasks`, {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-    });
-    input.value = "";
+    const newTask = await apiCall('/tasks', 'POST', payload);
+    if (newTask) input.value = "";
 }
 
 export async function deleteTask(id) {
-    const token = getToken();
-    await fetch(`${API_URL}/tasks/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-    });
+    // Rien à renvoyer, on veut juste que ça se fasse
+    await apiCall(`/tasks/${id}`, 'DELETE');
 }
 
 export async function editTask(id, currentText) {
@@ -107,23 +80,7 @@ export async function editTask(id, currentText) {
     // Si l'utilisateur annule ou laisse vide, on arrête tout
     if (newText === null || newText.trim() === "") return;
 
-    const token = getToken();
-
-    try {
-        const res = await fetch(`${API_URL}/tasks/${id}`, {
-            method: 'PUT', // <--- Verbe PUT pour modifier
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ text: newText })
-        });
-
-        if (!res.ok) throw new Error("Erreur modif");
-
-    } catch (err) {
-        alert("Impossible de modifier la tâche");
-    }
+    await apiCall(`/tasks/${id}`, 'PUT', { text: newText });
 }
 
 export async function addNewTag() {
@@ -131,126 +88,103 @@ export async function addNewTag() {
     const colorInput = document.getElementById('new-tag-color');
     const name = nameInput.value;
     const color = colorInput.value;
-    if (!name) return;
-    const token = getToken();
-    try {
-        const resGet = await fetch(`${API_URL}/user/me`, { headers: { 'Authorization': `Bearer ${token}` } });
-        const user = await resGet.json();
-        const currentTags = user.tags;
-        currentTags.push({ name, color });
-        const resPut = await fetch(`${API_URL}/user/tags`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ tags: currentTags })
-        });
-        const newTags = await resPut.json();
+
+    if (!name) showToast("Le nom du tag est vide", "error");
+
+    const user = await apiCall('/user/me');
+    if (!user) return;
+
+    const currentTags = user.tags || [];
+    currentTags.push({ name, color });
+
+    const newTags = await apiCall('/user/tags', 'PUT', { tags: currentTags });
+
+    if (newTags) {
         updateTagsState(newTags);
         nameInput.value = "";
         showToast("Tag ajouté avec succès !", "success");
-    } catch (err) { showToast("Erreur lors de l'ajout du tag", "error"); }
+    }
 }
 
 async function sendSuggestion() {
     const input = document.getElementById('suggestion-text');
-    const text = input.value;
+    const text = input.value.trim();
     
-    if (!text.trim()) return; // On n'envoie pas de vide
-    if (text.length > 500) return showToast("Limite de caractères : 500", "error");
+    if (!text) return showToast("La suggestion est vide !", "error");
 
-    const token = getToken(); // Ta fonction importée de config.js
+    const res = await apiCall('/suggestions', 'POST', { text });
 
-    try {
-        const res = await fetch(`${API_URL}/suggestions`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': `Bearer ${token}` 
-            },
-            body: JSON.stringify({ text })
-        });
-
-        if (res.ok) {
-            input.value = ""; // On vide le champ
-            showToast("Suggestion envoyée !", "success");
-        } else {
-            showToast("Erreur lors de l'envoi...", "error");
-        }
-    } catch (err) {
-        console.error(err);
+    // Si res existe, c'est que le serveur a dit OUI (200 OK)
+    // Si le serveur avait dit NON (400 ou 500), apiCall aurait renvoyé null + Toast Erreur
+    if (res) {
+        input.value = ""; 
+        showToast("Suggestion envoyée !", "success");
+        document.getElementById('suggestion-modal').classList.add('hidden');
     }
 }
 
 async function loadSuggestions() {
     const list = document.getElementById('suggestions-list');
     const emptyMsg = document.getElementById('empty-inbox-msg');
-    const token = getToken();
 
     list.innerHTML = ""; // On vide avant de remplir
 
-    try {
-        const res = await fetch(`${API_URL}/suggestions`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const suggestions = await res.json();
+    const suggestions = await apiCall('/suggestions');
 
-        if (suggestions.length === 0) {
-            emptyMsg.style.display = 'block';
-            return;
-        }
-        emptyMsg.style.display = 'none';
+    if (!suggestions) return;
 
-        suggestions.forEach(sugg => {
-            const li = document.createElement('li');
-            li.className = 'suggestion-item';
-
-            // On construit les éléments un par un (plus sûr)
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'suggestion-content';
-
-            const authorSpan = document.createElement('span');
-            authorSpan.className = 'suggestion-author';
-            authorSpan.textContent = sugg.author || 'Anonyme'; // SÉCURISÉ
-
-            const textSpan = document.createElement('span');
-            textSpan.className = 'suggestion-text';
-            textSpan.textContent = sugg.text; // SÉCURISÉ (Les balises HTML seront affichées en texte brut)
-
-            const btn = document.createElement('button');
-            btn.className = 'delete-suggestion-btn';
-            btn.textContent = '✕';
-            btn.onclick = () => deleteSuggestion(sugg._id);
-
-            // Assemblage
-            contentDiv.appendChild(authorSpan);
-            contentDiv.appendChild(textSpan);
-            li.appendChild(contentDiv);
-            li.appendChild(btn);
-
-            list.appendChild(li);
-        });
-
-    } catch (err) {
-        console.error(err);
-        showToast("Impossible de lire les idées", "error");
+    if (suggestions.length === 0) {
+        emptyMsg.style.display = "block";
+        return;
     }
+    emptyMsg.style.display = "none";
+
+    suggestions.forEach(sugg => {
+        const li = document.createElement('li');
+        li.className = 'suggestion-item';
+
+        // On construit les éléments un par un (plus sûr)
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'suggestion-content';
+
+        const authorSpan = document.createElement('span');
+        authorSpan.className = 'suggestion-author';
+        authorSpan.textContent = sugg.author || 'Anonyme'; // SÉCURISÉ
+
+        const textSpan = document.createElement('span');
+        textSpan.className = 'suggestion-text';
+        textSpan.textContent = sugg.text; // SÉCURISÉ (Les balises HTML seront affichées en texte brut)
+
+        const btn = document.createElement('button');
+        btn.className = 'delete-suggestion-btn';
+        btn.textContent = '✕';
+        btn.onclick = () => deleteSuggestion(sugg._id);
+
+        // Assemblage
+        contentDiv.appendChild(authorSpan);
+        contentDiv.appendChild(textSpan);
+        li.appendChild(contentDiv);
+        li.appendChild(btn);
+
+        list.appendChild(li);
+    });
 }
 
 // Fonction globale pour le onclick
 window.deleteSuggestion = async (id) => {
     if (!confirm("Supprimer cette idée ?")) return;
-    
-    const token = getToken();
-    try {
-        await fetch(`${API_URL}/suggestions/${id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        loadSuggestions(); // On recharge la liste
+
+    const res = await apiCall(`/suggestions/${id}`, 'DELETE');
+
+    if (res) {
         showToast("Idée supprimée", "success");
-    } catch (err) {
-        showToast("Erreur suppression", "error");
+        loadSuggestions();
     }
 };
+
+window.deleteTask = deleteTask;
+window.editTask = editTask;
+window.addNewTag = addNewTag;
 
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();

@@ -1,12 +1,10 @@
-import { deleteTask, editTask } from './app.js';
-
 let userTags = [];
 let allTasksCache = []; // On garde une copie de toutes les tâches
 let currentFilter = 'all';
 let currentSort = 'date-asc'; // Par défaut : le plus urgent en haut
 
 export function updateTagsState(tags) {
-    userTags = tags;
+    userTags = tags || [];
     renderTagSelect();
     renderFilterSelect();
     renderSettingsList();
@@ -98,40 +96,36 @@ export function renderTasks(tasks) {
         filteredTasks = filteredTasks.filter(t => t.category === currentFilter);
     }
 
-    // 3. B. TRI (La partie critique)
+    // 3. B. TRI ROBUSTE
     filteredTasks.sort((a, b) => {
-        // --- CAS 1 : Tri par "Récents" (basé sur l'ID ou createdAt) ---
+        // --- CAS 1 : Tri par "Récents" (Date de création) ---
         if (currentSort === 'recent') {
-            // Sécurité : si pas de date de création, on prend l'ID
+            // On utilise createdAt. Si pas dispo, on fallback sur 0
             const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
             const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            return dateB - dateA; // Plus grand (récent) en premier
+            // Le plus grand (le plus récent) en premier
+            return dateB - dateA;
         } 
         
-        // --- CAS 2 : Tri par Date Limite (Urgent / Pas Urgent) ---
-        else if (currentSort === 'date-asc' || currentSort === 'date-desc') {
-            // A. Gestion des sans-dates : On les met TOUJOURS à la fin
-            // Si A n'a pas de date, il part au fond (return 1)
-            if (!a.dueDate) return 1;
-            // Si B n'a pas de date, il part au fond (return -1) -> A passe devant
-            if (!b.dueDate) return -1;
+        // --- CAS 2 : Tri par Date Limite (Urgent) ---
+        if (currentSort === 'date-asc' || currentSort === 'date-desc') {
+            // On convertit en Timestamp (nombre) ou en null
+            const timeA = a.dueDate ? new Date(a.dueDate).getTime() : null;
+            const timeB = b.dueDate ? new Date(b.dueDate).getTime() : null;
 
-            // B. Conversion en nombres (Timestamp) pour éviter les bugs
-            const timeA = new Date(a.dueDate).getTime();
-            const timeB = new Date(b.dueDate).getTime();
+            // GESTION DES TÂCHES SANS DATE (Elles vont toujours à la fin)
+            if (!timeA && !timeB) return 0; // Les deux n'ont pas de date -> on touche pas
+            if (!timeA) return 1;  // A n'a pas de date -> A va à la fin
+            if (!timeB) return -1; // B n'a pas de date -> B va à la fin
 
-            // C. Sécurité ultime : Si la date est invalide (NaN), on la traite comme null
-            if (isNaN(timeA)) return 1;
-            if (isNaN(timeB)) return -1;
-
-            // D. Le calcul final
+            // Comparaison classique des nombres
             if (currentSort === 'date-asc') {
-                return timeA - timeB; // Urgent (petit chiffre) en premier
+                return timeA - timeB; // Petit chiffre (vieux/urgent) en premier
             } else {
-                return timeB - timeA; // Loin (grand chiffre) en premier
+                return timeB - timeA; // Grand chiffre (loin) en premier
             }
         }
-        return 0;
+        return 0; // Par défaut
     });
 
     // 4. Affichage
@@ -206,13 +200,13 @@ export function appendTaskToUI(task) {
     editBtn.textContent = "✏️"; // Emoji crayon
     editBtn.className = "edit-btn"; // Classe CSS
     // On passe l'ID ET le texte actuel pour le pré-remplir dans le prompt
-    editBtn.onclick = () => editTask(task._id, task.text);
+    editBtn.onclick = () => window.editTask(task._id, task.text);
 
     // 2. Bouton SUPPRIMER (Ton code existant)
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = "✕";
     deleteBtn.className = "delete-btn";
-    deleteBtn.onclick = () => deleteTask(task._id);
+    deleteBtn.onclick = () => window.deleteTask(task._id);
 
     // On met les deux boutons dans la boite
     actionsDiv.appendChild(editBtn);
@@ -226,6 +220,11 @@ export function appendTaskToUI(task) {
 export function removeTaskFromUI(taskId) {
     const el = document.getElementById(`task-${taskId}`);
     if (el) el.remove();
+    allTasksCache = allTasksCache.filter(t => t._id !== taskId);
+    if (allTasksCache.length === 0) {
+        const list = document.getElementById('task-list');
+        if (list) list.innerHTML = '<li style="text-align:center; padding:20px; color:#666;">Aucune tâche trouvée 🧐</li>';
+    }
 }
 
 export function updateTaskInUI(updatedTask) {
