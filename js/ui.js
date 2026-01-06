@@ -1,4 +1,4 @@
-import { deleteTask } from './app.js';
+import { deleteTask, editTask } from './app.js';
 
 let userTags = [];
 let allTasksCache = []; // On garde une copie de toutes les tâches
@@ -78,7 +78,9 @@ export function startClock() {
     window.clockInterval = setInterval(() => {
         const now = new Date();
         const el = document.getElementById('clock');
+        const els = document.getElementById('clock-seconds')
         if(el) el.textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        if (els) els.textContent = `${String(now.getSeconds()).padStart(2,'0')}`;
     }, 1000);
 }
 
@@ -195,18 +197,62 @@ export function appendTaskToUI(task) {
         </div>
     `;
 
+    // --- CONTENEUR BOUTONS (Pour les aligner à droite) ---
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = "task-actions"; // On crée une classe pour le CSS
+    
+    // 1. Bouton EDITER
+    const editBtn = document.createElement('button');
+    editBtn.textContent = "✏️"; // Emoji crayon
+    editBtn.className = "edit-btn"; // Classe CSS
+    // On passe l'ID ET le texte actuel pour le pré-remplir dans le prompt
+    editBtn.onclick = () => editTask(task._id, task.text);
+
+    // 2. Bouton SUPPRIMER (Ton code existant)
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = "✕";
-    deleteBtn.className = "delete-btn"; // Le style est dans le CSS
+    deleteBtn.className = "delete-btn";
     deleteBtn.onclick = () => deleteTask(task._id);
 
-    li.appendChild(deleteBtn);
+    // On met les deux boutons dans la boite
+    actionsDiv.appendChild(editBtn);
+    actionsDiv.appendChild(deleteBtn);
+
+    // On ajoute la boite au LI
+    li.appendChild(actionsDiv);
     taskList.appendChild(li);
 }
 
 export function removeTaskFromUI(taskId) {
     const el = document.getElementById(`task-${taskId}`);
     if (el) el.remove();
+}
+
+export function updateTaskInUI(updatedTask) {
+    // 1. On cherche l'élément HTML de la tâche par son ID
+    const li = document.getElementById(`task-${updatedTask._id}`);
+    
+    // Si elle n'est pas affichée (ex: on est sur un autre filtre), on ne fait rien
+    if (!li) return;
+
+    // 2. On met à jour le texte
+    const textSpan = li.querySelector('.task-text');
+    if (textSpan) {
+        textSpan.textContent = updatedTask.text;
+    }
+
+    // 3. Petit effet visuel "Flash" pour montrer que ça a changé ✨
+    // On change la couleur de fond brièvement
+    const originalTransition = li.style.transition;
+    li.style.transition = "background-color 0.5s ease";
+    li.style.backgroundColor = "#334e68"; // Un bleu gris léger
+    
+    setTimeout(() => {
+        li.style.backgroundColor = ""; // On revient à la couleur normale
+        setTimeout(() => {
+            li.style.transition = originalTransition; // On remet la transition d'origine
+        }, 500);
+    }, 500);
 }
 
 export function setWeatherLoading() {

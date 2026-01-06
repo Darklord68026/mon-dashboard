@@ -1,0 +1,1 @@
+coucou camille voici des amelioration pour ton site " ajouter un bouton cacher pour un mini jeux, modifier la tache, suggestion moi le roi  ok 

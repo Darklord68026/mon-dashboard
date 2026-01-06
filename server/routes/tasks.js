@@ -55,4 +55,28 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// PUT /api/tasks/:id (Pour modifier le texte)
+router.put('/:id', async (req, res) => {
+    try {
+        const { text } = req.body;
+        
+        // 1. On cherche la tâche et on vérifie qu'elle appartient bien au user
+        const task = await Task.findOne({ _id: req.params.id, owner: req.user._id });
+        
+        if (!task) return res.status(404).json({ error: "Tâche introuvable" });
+
+        // 2. On modifie et on sauvegarde
+        task.text = text;
+        const updatedTask = await task.save();
+
+        // 3. 📢 SIGNAL SOCKET (Pour que ton pote voit la correction en direct)
+        // Note: Il faudra écouter cet événement côté client plus tard si tu veux le temps réel
+        req.io.emit('taskUpdated', updatedTask);
+
+        res.json(updatedTask);
+    } catch (error) {
+        res.status(500).json({ error: "Erreur modification" });
+    }
+});
+
 module.exports = router;

@@ -90,6 +90,32 @@ export async function deleteTask(id) {
     });
 }
 
+export async function editTask(id, currentText) {
+    // 1. On demande le nouveau texte à l'utilisateur
+    const newText = prompt("Modifier la tâche :", currentText);
+
+    // Si l'utilisateur annule ou laisse vide, on arrête tout
+    if (newText === null || newText.trim() === "") return;
+
+    const token = getToken();
+
+    try {
+        const res = await fetch(`${API_URL}/tasks/${id}`, {
+            method: 'PUT', // <--- Verbe PUT pour modifier
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ text: newText })
+        });
+
+        if (!res.ok) throw new Error("Erreur modif");
+
+    } catch (err) {
+        alert("Impossible de modifier la tâche");
+    }
+}
+
 export async function addNewTag() {
     const nameInput = document.getElementById('new-tag-name');
     const colorInput = document.getElementById('new-tag-color');
@@ -205,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnlogout = document.getElementById('logout-btn');
     if (btnlogout) {
         btnlogout.onclick = () => {
-            logout
+            logout();
         };
     }
 
@@ -228,4 +254,21 @@ document.addEventListener('DOMContentLoaded', () => {
             setTaskFilters(null, e.target.value);
         };
     }
+
+    // --- MODE ZEN (Double Clic pour tout cacher) ---
+    document.addEventListener('dblclick', (e) => {
+        const dashboard = document.getElementById('dashboard-screen');
+        const login = document.getElementById('login-screen');
+
+        // SÉCURITÉ 1 : On ne fait rien si on est encore sur l'écran de connexion
+        // (Si le login n'a pas la classe hidden, c'est qu'on est pas connecté)
+        if (!login.classList.contains('hidden')) return;
+
+        // SÉCURITÉ 2 : On ne fait rien si on clique sur un Input, Bouton ou Select
+        // (Sinon impossible de sélectionner du texte sans tout faire disparaître)
+        if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(e.target.tagName)) return;
+
+        // ACTION : On bascule la classe .hidden
+        dashboard.classList.toggle('hidden');
+    });
 });
