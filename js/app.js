@@ -198,6 +198,14 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // Logout
+    const btnlogout = document.getElementById('lougout-btn');
+    if (btnlogout) {
+        btnlogout.onclick = () => {
+            logout
+        };
+    }
+
     // Add Tag
     const btnAddTag = document.getElementById('add-tag-btn');
     if (btnAddTag) btnAddTag.onclick = addNewTag;
