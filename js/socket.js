@@ -1,5 +1,5 @@
 import { SOCKET_URL, getToken } from './config.js';
-import { appendTaskToUI, removeTaskFromUI, updateTaskInUI } from './ui.js';
+import { appendTaskToUI, removeTaskFromUI, updateTaskInUI, showToast } from './ui.js';
 
 let socket;
 
@@ -7,7 +7,7 @@ export function initSocket() {
     // On initialise la connexion
     socket = io(SOCKET_URL, { transports: ['websocket'] });
 
-    socket.on('connect', () => console.log("� Socket Connecté"));
+    socket.on('connect', () => console.log("Socket Connecté"));
 
     // ÉCOUTE AJOUT
     socket.on('taskAdded', (newTask) => {
@@ -33,5 +33,11 @@ export function initSocket() {
         // Pas besoin de vérifier le token : si la tâche est dans ton HTML (getElementById),
         // c'est qu'elle t'appartient, donc on la met à jour.
         updateTaskInUI(updatedTask);
+    });
+
+    socket.on('newSuggestion', (data) => {
+        // Affiche un toast spécial
+        // Tu peux importer showToast de ui.js
+        showToast(`💡 Nouvelle idée de ${data.author} : "${data.text}"`, "info");
     });
 }

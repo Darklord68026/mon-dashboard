@@ -245,6 +245,131 @@ header {
 }
 #btn-updatePassword:hover { background: #666; }
 
+/* --- STYLES SPÉCIFIQUES SUGGESTION --- */
+
+/* En-tête (Titre + Croix) alignés */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--primary); /* Ton bleu/couleur principale */
+}
+
+/* Bouton croix (fermeture) */
+.close-suggestion-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.close-suggestion-btn:hover { color: white; }
+
+/* Petite description */
+.modal-desc {
+    color: #ccc;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+/* La zone de texte (Style inspiré de ton #input-newPassword) */
+#suggestion-text {
+    width: 100%;
+    height: 120px; /* Une bonne hauteur par défaut */
+    background: var(--bg-input); /* Utilise ta variable si elle existe, sinon #2c2c2c */
+    border: 1px solid #444;
+    color: white;
+    border-radius: 5px;
+    padding: 10px;
+    resize: none; /* Empêche de déformer le modal */
+    font-family: inherit;
+    margin-bottom: 15px;
+}
+
+#suggestion-text:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+/* Le bouton d'envoi */
+#send-suggestion-btn {
+    width: 100%;
+    background: var(--primary);
+    border: none;
+    color: white;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: filter 0.2s;
+}
+
+#send-suggestion-btn:hover {
+    filter: brightness(1.1);
+}
+
+/* LISTE DES SUGGESTIONS */
+#suggestions-list {
+    list-style: none;
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto; /* Scroll si trop de messages */
+    margin-top: 10px;
+}
+
+.suggestion-item {
+    background: #333;
+    border: 1px solid #444;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.suggestion-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.suggestion-author {
+    font-size: 0.75rem;
+    color: var(--primary);
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.suggestion-text {
+    font-size: 0.9rem;
+    color: white;
+}
+
+/* Bouton poubelle */
+.delete-suggestion-btn {
+    background: transparent;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 5px;
+    transition: color 0.2s;
+}
+
+.delete-suggestion-btn:hover {
+    color: var(--danger); /* Rouge */
+    transform: scale(1.1);
+}
+
 /* ================= ANIMATIONS ================= */
 @keyframes alarm-flash {
     0%, 100% { border-color: var(--danger); color: var(--danger); }
@@ -253,6 +378,11 @@ header {
 .date-late {
     display: inline-block; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--danger); font-weight: bold;
     animation: alarm-flash 1s infinite ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* ================= RESPONSIVE ================= */

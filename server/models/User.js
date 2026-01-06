@@ -10,7 +10,8 @@ const userSchema = new mongoose.Schema({
             { name: "Urgent", color: "#ff6b6b" },
             { name: "Devoirs", color: "#4dabf7" }
         ]
-    }
+    },
+    role: { type: String, default: 'user' } // Peut être 'user' ou 'admin'
 });
 
 module.exports = mongoose.model('User', userSchema);

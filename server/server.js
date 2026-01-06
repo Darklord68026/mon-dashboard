@@ -10,6 +10,7 @@ const { Server } = require('socket.io');
 const authRoutes = require('./routes/auth');
 const taskRoutes = require('./routes/tasks');
 const userRoutes = require('./routes/user');
+const suggestionRoutes = require('./routes/suggestions');
 const weatherRoutes = require('./routes/weather');
 
 const app = express();
@@ -49,6 +50,7 @@ mongoose.connect(process.env.MONGO_URL)
 app.use('/api', authRoutes);       // Gère /api/login et /api/register
 app.use('/api/tasks', taskRoutes); // Gère /api/tasks/...
 app.use('/api/user', userRoutes);  // Gère /api/user/...
+app.use('/api/suggestions', suggestionRoutes); // Gère /api/suggestions...
 app.use('/api', weatherRoutes);    // Gère /api/background
 
 // --- DÉMARRAGE ---

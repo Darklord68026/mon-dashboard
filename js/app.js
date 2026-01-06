@@ -5,6 +5,7 @@ import { initSocket } from './socket.js';
 import { initWeather } from './weather.js';
 
 let currentUserId = null;
+let currentUserUsername = null;
 
 export function checkAuth() {
     const token = getToken();
@@ -34,9 +35,17 @@ async function loadUserData() {
             const pseudo = user.username.charAt(0).toUpperCase() + user.username.slice(1);
             footerText.textContent = `Bonjour, ${pseudo} 👋`;
         }
+        const inboxBtn = document.getElementById('open-inbox-btn');
+        
+        if (inboxBtn) {
+            if (user.role === 'admin') {
+                inboxBtn.style.display = 'block';
+            } else {
+                inboxBtn.style.display = 'none';
+            }
+        }
         currentUserId = user._id;
     } catch (err) {
-        if (res.status === 401) { logout(); return; }
         console.error("Erreur user:", err);
     }
 }
@@ -139,6 +148,91 @@ export async function addNewTag() {
         showToast("Tag ajouté avec succès !", "success");
     } catch (err) { showToast("Erreur lors de l'ajout du tag", "error"); }
 }
+
+async function sendSuggestion() {
+    const input = document.getElementById('suggestion-text');
+    const text = input.value;
+    
+    if (!text.trim()) return; // On n'envoie pas de vide
+
+    const token = getToken(); // Ta fonction importée de config.js
+
+    try {
+        const res = await fetch(`${API_URL}/suggestions`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({ text })
+        });
+
+        if (res.ok) {
+            input.value = ""; // On vide le champ
+            showToast("Suggestion envoyée !", "success");
+        } else {
+            showToast("Erreur lors de l'envoi...", "error");
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function loadSuggestions() {
+    const list = document.getElementById('suggestions-list');
+    const emptyMsg = document.getElementById('empty-inbox-msg');
+    const token = getToken();
+
+    list.innerHTML = ""; // On vide avant de remplir
+
+    try {
+        const res = await fetch(`${API_URL}/suggestions`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const suggestions = await res.json();
+
+        if (suggestions.length === 0) {
+            emptyMsg.style.display = 'block';
+            return;
+        }
+        emptyMsg.style.display = 'none';
+
+        suggestions.forEach(sugg => {
+            const li = document.createElement('li');
+            li.className = 'suggestion-item';
+            
+            li.innerHTML = `
+                <div class="suggestion-content">
+                    <span class="suggestion-author">${sugg.author || 'Anonyme'}</span>
+                    <span class="suggestion-text">${sugg.text}</span>
+                </div>
+                <button class="delete-suggestion-btn" onclick="deleteSuggestion('${sugg._id}')">✕</button>
+            `;
+            list.appendChild(li);
+        });
+
+    } catch (err) {
+        console.error(err);
+        showToast("Impossible de lire les idées", "error");
+    }
+}
+
+// Fonction globale pour le onclick
+window.deleteSuggestion = async (id) => {
+    if (!confirm("Supprimer cette idée ?")) return;
+    
+    const token = getToken();
+    try {
+        await fetch(`${API_URL}/suggestions/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        loadSuggestions(); // On recharge la liste
+        showToast("Idée supprimée", "success");
+    } catch (err) {
+        showToast("Erreur suppression", "error");
+    }
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
@@ -271,4 +365,70 @@ document.addEventListener('DOMContentLoaded', () => {
         // ACTION : On bascule la classe .hidden
         dashboard.classList.toggle('hidden');
     });
+
+    // --- MODAL SUGGESTION ---
+    const suggestionModal = document.getElementById('suggestion-modal');
+    const openBtn = document.getElementById('open-suggestion-modal-btn');
+    const closeBtn = document.querySelector('.close-suggestion-btn');
+    const sendBtn = document.getElementById('send-suggestion-btn');
+
+    // OUVRIR
+    if (openBtn) {
+        openBtn.onclick = () => {
+            suggestionModal.classList.remove('hidden');
+            document.getElementById('suggestion-text').focus();
+        };
+    }
+
+    // FERMER (Croix)
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            suggestionModal.classList.add('hidden');
+        };
+    }
+
+    // FERMER (Clic en dehors)
+    window.onclick = (e) => {
+        // Si on clique sur le fond gris (overlay), on ferme
+        if (e.target === suggestionModal) {
+            suggestionModal.classList.add('hidden');
+        }
+        // (Garde tes autres logiques de fermeture ici si tu en as)
+    };
+
+    // ENVOYER
+    if (sendBtn) {
+        sendBtn.onclick = async () => {
+            const textarea = document.getElementById('suggestion-text');
+            const text = textarea.value.trim();
+
+            if (!text) return showToast("La suggestion est vide !", "error");
+
+            // Fonction définie plus bas ou importée
+            await sendSuggestion(text); 
+            
+            textarea.value = ""; // Vider
+            suggestionModal.classList.add('hidden'); // Fermer
+        };
+    }
+
+    // --- GESTION INBOX (LECTURE) ---
+    const inboxModal = document.getElementById('inbox-modal');
+    const openInboxBtn = document.getElementById('open-inbox-btn');
+    const closeInboxBtn = document.querySelector('.close-inbox-btn');
+    
+    // Ouvrir et charger les données
+    if (openInboxBtn) {
+        openInboxBtn.onclick = () => {
+            inboxModal.classList.remove('hidden');
+            loadSuggestions(); // <--- On charge la liste
+        };
+    }
+
+    // Fermer
+    if (closeInboxBtn) {
+        closeInboxBtn.onclick = () => inboxModal.classList.add('hidden');
+    }
+
+    // (Ajoute aussi la fermeture au clic extérieur si tu veux)
 });
