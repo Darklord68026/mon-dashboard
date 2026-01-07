@@ -83,11 +83,13 @@ function drawGame() {
     if (direction === 'RIGHT') snakeX += boxSize;
     if (direction === 'DOWN') snakeY += boxSize;
 
-    // 3. Gestion des murs (Traverser ou mourir ?) -> Ici on traverse (Pacman style)
-    if (snakeX < 0) snakeX = canvas.width - boxSize;
-    if (snakeX >= canvas.width) snakeX = 0;
-    if (snakeY < 0) snakeY = canvas.height - boxSize;
-    if (snakeY >= canvas.height) snakeY = 0;
+    // 3. Gestion des murs (Collision = GAME OVER)
+        if (snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height) {
+            clearInterval(gameInterval); // On arrête le temps
+            alert("GAME OVER 💥 (Tu as pris le mur) - Score : " + score);
+            closeGame(); // On ferme et reset
+            return; // On arrête la fonction ici
+        }
 
     // 4. Manger la pomme
     if (snakeX === food.x && snakeY === food.y) {
