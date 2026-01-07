@@ -40,6 +40,7 @@ async function loadUserData() {
         inboxBtn.style.display = (user.role === 'admin') ? 'block' : 'none';
     }
 
+    window.currentUserRole = user.role;
     currentUserId = user._id;
     currentUserUsername = user.username;
 }

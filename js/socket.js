@@ -36,8 +36,8 @@ export function initSocket() {
     });
 
     socket.on('newSuggestion', (data) => {
-        // Affiche un toast spécial
-        // Tu peux importer showToast de ui.js
-        showToast(`💡 Nouvelle idée de ${data.author} : "${data.text}"`, "info");
+        if (window.currentUserRole === 'admin') {
+            showToast(`💡 Nouvelle idée de ${data.author} : "${data.text}"`, "info");
+        }
     });
 }
