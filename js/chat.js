@@ -210,7 +210,6 @@ export function addMessageToUI(msg) {
     li.className = `chat-msg ${isMe ? 'sent' : 'received'}`;
     
     li.innerHTML = `
-        <span class="chat-sender-name">${msg.senderName || 'Anonyme'}</span>
         <span>${msg.text}</span>
     `;
 
