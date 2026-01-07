@@ -3,6 +3,7 @@ import { apiCall } from './api.js';
 import { showLoginScreen, showDashboardScreen, startClock, renderTasks, updateTagsState, showToast, setTaskFilters } from './ui.js';
 import { login, register, logout, updatePassword } from './auth.js';
 import { initSocket } from './socket.js';
+import { initChat } from './chat.js';
 import { initWeather } from './weather.js';
 
 let currentUserId = null;
@@ -43,6 +44,7 @@ async function loadUserData() {
     window.currentUserRole = user.role;
     currentUserId = user._id;
     currentUserUsername = user.username;
+    initChat(currentUserId);
 }
 
 async function loadTasks() {

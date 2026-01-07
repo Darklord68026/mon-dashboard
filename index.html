@@ -55,6 +55,10 @@
             <div class="sidebar-content">
                 <button id="open-suggestion-modal-btn" class="menu-item">👑 Boîte à Idées</button>
                 <button id="open-inbox-btn" class="menu-item">📂 Lire les idées</button>
+                <button id="open-chat-sidebar-btn" class="menu-item">
+                    💬 Discussions
+                    <span id="chat-notification-badge" class="notification-badge hidden">0</span>
+                </button>
                 <button id="open-settings-btn" class="menu-item">⚙️ Paramètres</button>
                 <button id="logout-btn" class="menu-item danger">Déconnexion</button>
             </div>
@@ -166,6 +170,25 @@
             
             <div id="empty-inbox-msg" style="display:none; text-align:center; color:#666;">
                 Aucune nouvelle suggestion 🦗
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-modal" class="hidden">
+        <div class="chat-container">
+            <div class="chat-header">
+                <select id="chat-contact-select" class="chat-select">
+                    <option value="general">🌍 Général</option>
+                    </select>
+                <button id="close-chat-btn" class="close-btn btn-icon">&times;</button>
+            </div>
+            
+            <ul id="chat-messages-list">
+                </ul>
+
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Écrivez un message..." autocomplete="off">
+                <button id="send-chat-btn">➤</button>
             </div>
         </div>
     </div>

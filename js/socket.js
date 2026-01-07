@@ -1,5 +1,6 @@
 import { SOCKET_URL, getToken } from './config.js';
 import { appendTaskToUI, removeTaskFromUI, updateTaskInUI, showToast } from './ui.js';
+import { handleIncomingMessage } from './chat.js';
 
 let socket;
 
@@ -39,5 +40,9 @@ export function initSocket() {
         if (window.currentUserRole === 'admin') {
             showToast(`💡 Nouvelle idée de ${data.author} : "${data.text}"`, "info");
         }
+    });
+
+    socket.on('chatMessage', (msg) => {
+        handleIncomingMessage(msg);
     });
 }

@@ -13,6 +13,17 @@ router.get('/me', authMiddleware, async (req, res) => {
     }
 });
 
+// GET /api/user/all (NOUVEAU : Pour la liste des contacts)
+router.get('/all', authMiddleware, async (req, res) => {
+    try {
+        // On récupère ID et Username de tout le monde
+        const users = await User.find({}, 'username _id');
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ error: "Erreur liste utilisateurs" });
+    }
+});
+
 // PUT /api/user/tags
 router.put('/tags', authMiddleware, async (req, res) => {
     try {
