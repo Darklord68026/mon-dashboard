@@ -10,7 +10,7 @@ router.post('/', authMiddleware, async (req, res) => {
     try {
         const { text } = req.body;
 
-        if (!text || text.length > 500 ) {
+        if (!text || text.length > 250 ) {
             return res.status(400).json({ error: "Texte invalide ou trop long"});
         }
         

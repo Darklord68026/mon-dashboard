@@ -9,6 +9,7 @@
     
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script type="module" src="js/app.js"></script>
+    <script src="js/game.js"></script>
 
     <meta name="theme-color" content="#121212">
     <link rel="manifest" href="manifest.json">
@@ -170,6 +171,18 @@
     </div>
 
     <div id="toast-container"></div>
+
+    <div id="game-overlay" class="hidden">
+        <div class="game-box">
+            <div class="game-header">
+                <h2 style="color: #0f0; font-family: 'Courier New', monospace;">🐍 SECRET MODE</h2>
+                <button id="close-game-btn">QUITTER</button>
+            </div>
+            <canvas id="game-canvas" width="400" height="400"></canvas>
+            <p style="color: #0f0; margin-top: 10px;">Score : <span id="game-score">0</span></p>
+            <p style="color: #666; font-size: 0.8rem;">Utilise les flèches pour jouer</p>
+        </div>
+    </div>
 
 </body>
 </html>

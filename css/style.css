@@ -164,6 +164,45 @@ header {
     transform: scale(1.2);
 }
 
+/* --- JEU CACHÉ (EASTER EGG) --- */
+#game-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.95); /* Fond très sombre */
+    z-index: 9999; /* Au-dessus de TOUT */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game-box {
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#game-canvas {
+    background-color: #111;
+    border: 2px solid #0f0; /* Bordure verte hacker */
+    box-shadow: 0 0 20px #0f0; /* Effet néon */
+    display: block;
+    margin: 0 auto;
+}
+
+#close-game-btn {
+    background: transparent;
+    border: 1px solid #0f0;
+    color: #0f0;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-family: inherit;
+    margin-bottom: 10px;
+}
+
+#close-game-btn:hover {
+    background: #0f0;
+    color: black;
+}
+
 /* ================= NAVIGATION ================= */
 .burger-icon {
     background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px);

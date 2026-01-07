@@ -1,4 +1,3 @@
-import { API_URL } from './config.js';
 import { apiCall } from './api.js';
 import { updateWeatherUI, updateBackgroundUI, setWeatherLoading, setWeatherError } from './ui.js';
 
