@@ -2,39 +2,55 @@ name: Deploy to AWS EC2
 
 # Déclencheur: Quand on push sur la branch 'main'
 on:
-    push:
-        branches:
-            - main
+  push:
+    branches:
+      - main
 
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
+  deploy:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Deploy to server via SSH
-              uses: appleboy/ssh-action@master
-              with:
-                host: ${{ secrets.EC2_HOST }}
-                username: ${{ secrets.EC2_USERNAME }}
-                key: ${{ secrets.EC2_SSH_KEY }}
-                port: 22
-                # C'est ici qu'on met les commandes à faire sur le serveur
-                script: | 
-                  # 1. Aller dans le dossier
-                  cd /home/ubuntu/mon-dashboard
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: | 
+            # 1. Aller dans le dossier du projet
+            cd /home/ubuntu/mon-dashboard
 
-                  # 2. Forcer la mise à jour
-                  git fetch --all
-                  git reset --hard origin/main
+            # 2. Forcer la mise à jour du code (Git Pull violent)
+            git fetch --all
+            git reset --hard origin/main
 
-                  # 3. Installer les nouvelles dépendances s'il y en a
-                  cd server
-                  npm install
+            # --- PARTIE BACKEND ---
+            echo "🚀 Déploiement Backend..."
+            cd server
+            npm install
+            # On redémarre le serveur Node
+            pm2 restart api-dashboard
+            cd ..
 
-                  # 4. Redémarrer le backend avec PM2 pour appliquer les changements
-                  pm2 restart api-dashboard
+            # --- PARTIE FRONTEND (React) ---
+            echo "🎨 Déploiement Frontend..."
+            cd client
+            
+            # Installation des dépendances React
+            npm install
+            
+            # Construction du site (crée le dossier 'dist')
+            npm run build
 
-                  echo "Déploiment terminé avec succès"
+            # On vide le dossier web actuel de Nginx (Nettoyage)
+            sudo rm -rf /var/www/html/*
+
+            # On copie le nouveau site compilé vers Nginx
+            sudo cp -r dist/* /var/www/html/
+
+            echo "✅ Déploiement terminé avec succès !"
