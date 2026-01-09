@@ -324,3 +324,12 @@ export function showToast(message, type = 'info') {
         });
     }, 3000); // Disparaît après 3 secondes
 }
+
+export function hide() {
+    document.getElementById('sidebar')?.classList.add('hidden');
+    document.getElementById('chat-modal')?.classList.add('hidden');
+    document.getElementById('settings-modal')?.classList.add('hidden');
+    document.getElementById('suggestion-modal')?.classList.add('hidden');
+    document.getElementById('inbox-modal')?.classList.add('hidden');
+    document.getElementById('game-overlay')?.classList.add('hidden');
+}

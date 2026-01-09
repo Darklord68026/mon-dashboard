@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const asyncHandler = require('../utils/asyncHandler');
+const AppError = require('../utils/AppError');
 
 // GET /api/background
 router.get('/background', async (req, res) => {
@@ -33,12 +35,8 @@ router.get('/background', async (req, res) => {
         
         const unsplashUrl = `https://api.unsplash.com/photos/random?query=${query}&orientation=landscape&w=1920&q=80&client_id=${process.env.UNSPLASH_KEY}`;
 
-        try {
-            const response = await axios.get(unsplashUrl);
-            res.json(response.data);
-        } catch (error) {
-            res.status(error.response.status).json(error.response.data);
-        }
+        const response = await axios.get(unsplashUrl);
+        res.json(response.data);
     };
 });
 

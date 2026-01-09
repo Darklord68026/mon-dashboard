@@ -1,6 +1,6 @@
 import { apiCall } from './api.js';
 import { checkAuth } from './app.js'; // Pour rafraîchir après login
-import { showToast } from './ui.js';
+import { hide, showToast } from './ui.js';
 
 export async function login(username, password) {
     const data = await apiCall('/login', 'POST', ({ username, password }));
@@ -18,6 +18,7 @@ export async function register(username, password) {
 }
 
 export function logout() {
+    hide();
     localStorage.removeItem('token');
     checkAuth();
 }

@@ -60,7 +60,6 @@ export async function addTask() {
     const text = input.value;
     if (!text) return;
 
-    const token = getToken();
     const payload = {
         text: text,
         category: categorySelect ? categorySelect.value : "Général",

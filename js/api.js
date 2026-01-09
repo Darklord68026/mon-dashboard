@@ -23,6 +23,7 @@ export async function apiCall(endpoint, method = 'GET', body = null) {
 
         // 1. Gestion de la déconnexion forcée (Token expiré ou invalide)
         if (res.status === 401) {
+            showToast("Veuillez vous reconnecter", "error");
             logout(); // Ça redirige vers le login et nettoie le storage
             return null;
         }

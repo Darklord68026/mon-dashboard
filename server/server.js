@@ -1,10 +1,10 @@
 require('dotenv').config();
-const path = require('path'); // Utile pour le chargement .env blindé
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const http = require('http');
 const { Server } = require('socket.io');
+const errorHandler = require('./middleware/error');
 
 // --- IMPORTS DES ROUTES ---
 const authRoutes = require('./routes/auth');
@@ -54,6 +54,15 @@ app.use('/api/user', userRoutes);  // Gère /api/user/...
 app.use('/api/chat', chatRoutes);  // Gère /api/chat/
 app.use('/api/suggestions', suggestionRoutes); // Gère /api/suggestions...
 app.use('/api', weatherRoutes);    // Gère /api/background
+
+app.use((req, res, next) => {
+    // On crée une erreur manuellement pour la passer au ErrorHandler
+    const error = new Error(`La route ${req.originalUrl} n'existe pas.`);
+    error.statusCode = 404;
+    next(error);
+});
+
+app.use(errorHandler);
 
 // --- DÉMARRAGE ---
 server.listen(PORT, () => {
