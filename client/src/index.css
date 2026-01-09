@@ -16,6 +16,12 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+#root {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    width: 100%;
+    min-height: 100vh;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text-main);
@@ -27,6 +33,11 @@ body {
     background-attachment: fixed;
     background-repeat: no-repeat;
     transition: background-image 0.5s ease-in-out;
+}
+
+button, input, textarea, select {
+    font-family: inherit;
+    font-size: 1rem;
 }
 
 /* ================= UTILITAIRES ================= */
@@ -625,4 +636,85 @@ header {
 @keyframes fadeOutToast {
     from { opacity: 1; transform: translateX(0); }
     to   { opacity: 0; transform: translateX(100%); }
+}
+
+/* --- BADGE DE NOTIFICATION (Rouge) --- */
+.notification-badge {
+    background-color: #ff3b30;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 50%; /* Cercle parfait */
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: auto; /* Pousse le badge tout à droite du bouton */
+    box-shadow: 0 0 5px rgba(255, 59, 48, 0.6);
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* --- CHANGELOG TIMELINE (Style Pro) --- */
+.changelog-timeline {
+    position: relative;
+    padding-left: 20px;
+    border-left: 2px solid #333;
+    margin-top: 10px;
+}
+
+.changelog-item {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.changelog-item::before {
+    content: '';
+    position: absolute;
+    left: -26px; /* Ajustement sur la ligne */
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    background: var(--primary);
+    border-radius: 50%;
+    border: 2px solid #1e1e1e;
+}
+
+.changelog-date {
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.changelog-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: white;
+    margin: 0 0 5px 0;
+}
+
+.changelog-desc {
+    color: #ccc;
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Tag "Nouveau" clignotant */
+.new-tag {
+    background: var(--primary);
+    color: white;
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
 }
