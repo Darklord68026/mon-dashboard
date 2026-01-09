@@ -91,12 +91,11 @@ export default function SnakeGame() {
 
             // Collision Soi-même
             if (snake.some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
-                 clearInterval(gameInterval);
-                 alert("GAME OVER 💀 - Score : " + currentScore);
-                 setIsOpen(false);
-                 return;
+                clearInterval(gameInterval);
+                alert("GAME OVER 💀 - Score : " + currentScore);
+                setIsOpen(false);
+                return;
             }
-
             snake.unshift(newHead);
 
             // Dessin Serpent
