@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const http = require('http');
 const { Server } = require('socket.io');
 const errorHandler = require('./middleware/error');
+const rateLimit = require('express-rate-limit');
 
 // --- IMPORTS DES ROUTES ---
 const authRoutes = require('./routes/auth');
@@ -16,6 +17,14 @@ const weatherRoutes = require('./routes/weather');
 
 const app = express();
 const PORT = 3000;
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: "Trop de requêtes réessayez dans 15min"
+});
 
 app.use(cors({
     origin: '*', // En prod, tu mettras ton domaine (ex: https://mon-dashboard.com)
@@ -48,12 +57,12 @@ mongoose.connect(process.env.MONGO_URL)
 
 // --- BRANCHEMENT DES ROUTES ---
 // On définit les préfixes ici :
-app.use('/api', authRoutes);       // Gère /api/login et /api/register
-app.use('/api/tasks', taskRoutes); // Gère /api/tasks/...
-app.use('/api/user', userRoutes);  // Gère /api/user/...
-app.use('/api/chat', chatRoutes);  // Gère /api/chat/
-app.use('/api/suggestions', suggestionRoutes); // Gère /api/suggestions...
-app.use('/api', weatherRoutes);    // Gère /api/background
+app.use('/api', authRoutes, limiter);       // Gère /api/login et /api/register
+app.use('/api/tasks', taskRoutes, limiter); // Gère /api/tasks/...
+app.use('/api/user', userRoutes, limiter);  // Gère /api/user/...
+app.use('/api/chat', chatRoutes, limiter);  // Gère /api/chat/
+app.use('/api/suggestions', suggestionRoutes, limiter); // Gère /api/suggestions...
+app.use('/api', weatherRoutes, limiter);    // Gère /api/background
 
 app.use((req, res, next) => {
     // On crée une erreur manuellement pour la passer au ErrorHandler

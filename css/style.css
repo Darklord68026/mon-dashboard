@@ -164,6 +164,13 @@ header {
     transform: scale(1.2);
 }
 
+/* Style de l'élément "fantôme" quand on drag & drop */
+.sortable-ghost {
+    opacity: 0.4;
+    background-color: #4dabf7 !important;
+    border: 2px dashed #fff;
+}
+
 /* --- JEU CACHÉ (EASTER EGG) --- */
 #game-overlay {
     position: fixed;

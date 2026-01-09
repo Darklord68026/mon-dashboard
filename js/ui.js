@@ -139,6 +139,7 @@ export function renderTasks(tasks) {
         taskList.innerHTML = '<li style="text-align:center; padding:20px; color:#666;">Aucune tâche trouvée 🧐</li>';
     } else {
         filteredTasks.forEach(task => appendTaskToUI(task));
+        initDragAndDrop();
     }
 }
 
@@ -332,4 +333,25 @@ export function hide() {
     document.getElementById('suggestion-modal')?.classList.add('hidden');
     document.getElementById('inbox-modal')?.classList.add('hidden');
     document.getElementById('game-overlay')?.classList.add('hidden');
+}
+
+// Ajoute ça tout à la fin de ui.js
+function initDragAndDrop() {
+    const el = document.getElementById('task-list');
+    if (!el) return;
+
+    // Si on a déjà activé Sortable, on ne le refait pas
+    if (el.classList.contains('sortable-active')) return;
+
+    new Sortable(el, {
+        animation: 150, // Animation fluide (ms)
+        ghostClass: 'sortable-ghost', // Classe de l'élément en cours de déplacement
+        onEnd: function (evt) {
+            // C'est ici qu'on enverrait le nouvel ordre au serveur
+            // Pour l'instant, c'est juste visuel
+            console.log("Nouvel ordre !", evt.oldIndex, "->", evt.newIndex);
+        },
+    });
+    
+    el.classList.add('sortable-active');
 }
