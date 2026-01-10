@@ -1,0 +1,97 @@
+name: 🚀 Production Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'client/**'
+      - 'server/**'
+
+jobs:
+  update-changelog-and-deploy:
+    # On ignore les commits du bot pour éviter la boucle infinie
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+
+    steps:
+      # --- ÉTAPE 1 : RÉCUPÉRATION ---
+      - name: 📥 Récupérer le code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🟢 Installer Node (Pour le script de changelog)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # --- ÉTAPE 2 : CHANGELOG AUTOMATIQUE ---
+      - name: 🤖 Mettre à jour le Changelog
+        id: changelog
+        run: |
+          # On vérifie si le dossier client existe (au cas où)
+          cd client
+          npm install --no-save # Juste pour avoir les libs du script si besoin
+          
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          echo "Analyse : $COMMIT_MSG"
+          
+          # Lancement du script IA
+          node scripts/update-changelog.js "$COMMIT_MSG"
+        continue-on-error: true
+
+      - name: 💾 Sauvegarder le Changelog sur GitHub
+        run: |
+          git config --global user.name "🤖 Changelog Bot"
+          git config --global user.email "bot@mondashboard.com"
+          
+          if [[ `git status --porcelain client/src/data/changelog.json` ]]; then
+            git add client/src/data/changelog.json
+            git commit -m "docs: mise à jour du changelog [skip ci]"
+            git push
+            echo "✅ Changelog sauvegardé sur GitHub !"
+          else
+            echo "💤 Pas de changement."
+          fi
+
+      # --- ÉTAPE 3 : DÉPLOIEMENT SUR EC2 ---
+      # On se connecte au serveur et on lui dit de tout faire lui-même
+      - name: 🚀 Déployer via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: | 
+            echo "📡 Connexion au serveur..."
+            cd /home/ubuntu/mon-dashboard
+
+            # 1. On récupère le code (y compris le changelog que le bot vient de push)
+            git fetch --all
+            git reset --hard origin/main
+
+            # 2. BACKEND
+            echo "🔄 Mise à jour Backend..."
+            cd server
+            npm install --production
+            pm2 restart api-dashboard || pm2 start server.js --name api-dashboard
+
+            # 3. FRONTEND (C'est ici qu'on build sur le serveur)
+            echo "🎨 Construction du Frontend sur le serveur..."
+            cd ../client
+            npm install
+            
+            # ATTENTION : Si ton serveur plante ici, c'est qu'il manque de RAM.
+            npm run build
+
+            # 4. Copie vers Nginx
+            echo "🚚 Mise en ligne..."
+            sudo rm -rf /var/www/html/*
+            sudo cp -r dist/* /var/www/html/
+
+            echo "✅ DÉPLOIEMENT TERMINÉ !"
