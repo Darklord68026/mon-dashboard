@@ -1,30 +1,8 @@
 import React from 'react';
+import updates from '../data/changelog.json';
 
 export default function ChangelogModal({ isOpen, onClose }) {
     if (!isOpen) return null;
-
-    // Tes données de mise à jour (Tu pourras en ajouter ici plus tard)
-    const updates = [
-        {
-            version: "2.0.0 - La Révolution React",
-            date: "9 Janvier 2026",
-            features: [
-                "🚀 Migration complète vers React (SPA).",
-                "⚡ Performances accrues et navigation fluide.",
-                "🖱️ Ajout du Drag & Drop pour trier les tâches.",
-                "🔒 Sécurité renforcée (Rate Limiting API)."
-            ]
-        },
-        {
-            version: "1.5.0 - Fonctionnalités Avancées",
-            date: "8 Janvier 2026",
-            features: [
-                "🐍 Ajout du mode secret 'Snake' (Konami Code).",
-                "🌦️ Widget Météo avec géolocalisation précise.",
-                "🎨 Fond d'écran dynamique selon la météo locale."
-            ]
-        }
-    ];
 
     return (
         <div className="modal-overlay" onClick={onClose}>

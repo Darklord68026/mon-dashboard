@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { apiCall } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { ReactSortable } from "react-sortablejs";
@@ -41,6 +41,12 @@ export default function Dashboard() {
     const [modals, setModals] = useState({
         sidebar: false, chat: false, settings: false, suggestion: false, inbox: false, changelog: false
     });
+
+    const isChatOpenRef = useRef(modals.chat);
+
+    useEffect(() => {
+        isChatOpenRef.current = modals.chat;
+    }, [modals.chat]);
 
     const navigate = useNavigate();
     const { showToast } = useToast();
@@ -90,6 +96,7 @@ export default function Dashboard() {
 
     // 4. Sockets
     useEffect(() => {
+        if (!user) return;
         const newSocket = io(SOCKET_URL, { transports: ['websocket'] });
         setSocket(newSocket);
         newSocket.on('taskAdded', (t) => setTasks(prev => [t, ...prev]));
@@ -104,13 +111,13 @@ export default function Dashboard() {
             if (senderId === user?.id) return; // Pas de notif pour soi-même
 
             // Si le chat est fermé, on incrémente le compteur
-            if (!modals.chat) {
+            if (!isChatOpenRef.current) {
                 setUnreadCount(prev => prev + 1);
                 showToast(`💬 Nouveau message de ${msg.sender.name}`, "info");
             }
         });
         return () => newSocket.disconnect();
-    }, [user,modals.chat, showToast]);
+    }, [user, showToast]);
 
     // 5. RESET DU COMPTEUR QUAND ON OUVRE LE CHAT
     const openChat = () => {
@@ -148,7 +155,10 @@ export default function Dashboard() {
         <div id="dashboard-screen" style={{ opacity: isZenMode ? 0 : 1, transition: 'opacity 0.5s ease' }}>
             
             <header>
-                <button className="burger-icon" onClick={() => toggleModal('sidebar', true)}>☰</button>
+                <button className="burger-icon" onClick={() => toggleModal('sidebar', true)}>
+                    ☰
+                    {unreadCount > 0 && <span className="burger-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}
+                </button>
                 {/* Structure exacte de ton ancienne horloge */}
                 <div id="clock-container" className="clock-floating">
                     <div id="clock">{time.hm}</div>

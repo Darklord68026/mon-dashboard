@@ -1,0 +1,21 @@
+[
+    {
+        "version": "2.0.0 - La Révolution React",
+        "date": "9 Janvier 2026",
+        "features": [
+            "🚀 Migration complète vers React (SPA).",
+            "⚡ Performances accrues et navigation fluide.",
+            "🖱️ Ajout du Drag & Drop pour trier les tâches.",
+            "🔒 Sécurité renforcée (Rate Limiting API)."
+        ]
+    },
+    {
+        "version": "1.5.0 - Fonctionnalités Avancées",
+        "date": "8 Janvier 2026",
+        "features": [
+            "🐍 Ajout du mode secret 'Snake' (Konami Code).",
+            "🌦️ Widget Météo avec géolocalisation précise.",
+            "🎨 Fond d'écran dynamique selon la météo locale."
+        ]
+    }
+]
