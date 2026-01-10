@@ -1,21 +1,28 @@
 [
-    {
-        "version": "2.0.0 - La Révolution React",
-        "date": "9 Janvier 2026",
-        "features": [
-            "🚀 Migration complète vers React (SPA).",
-            "⚡ Performances accrues et navigation fluide.",
-            "🖱️ Ajout du Drag & Drop pour trier les tâches.",
-            "🔒 Sécurité renforcée (Rate Limiting API)."
-        ]
-    },
-    {
-        "version": "1.5.0 - Fonctionnalités Avancées",
-        "date": "8 Janvier 2026",
-        "features": [
-            "🐍 Ajout du mode secret 'Snake' (Konami Code).",
-            "🌦️ Widget Météo avec géolocalisation précise.",
-            "🎨 Fond d'écran dynamique selon la météo locale."
-        ]
-    }
+  {
+    "version": "2.0.1 - Mise à jour Auto",
+    "date": "10 janvier 2026",
+    "features": [
+      "🚀 Implémentation de la mise à jour des nouveautés automatique\nfeat: Badge de notification désormais sur l'icone de la sidebar\nstyle: Changement du nom de l'onglet"
+    ]
+  },
+  {
+    "version": "2.0.0 - La Révolution React",
+    "date": "9 Janvier 2026",
+    "features": [
+      "🚀 Migration complète vers React (SPA).",
+      "⚡ Performances accrues et navigation fluide.",
+      "🖱️ Ajout du Drag & Drop pour trier les tâches.",
+      "🔒 Sécurité renforcée (Rate Limiting API)."
+    ]
+  },
+  {
+    "version": "1.5.0 - Fonctionnalités Avancées",
+    "date": "8 Janvier 2026",
+    "features": [
+      "🐍 Ajout du mode secret 'Snake' (Konami Code).",
+      "🌦️ Widget Météo avec géolocalisation précise.",
+      "🎨 Fond d'écran dynamique selon la météo locale."
+    ]
+  }
 ]
