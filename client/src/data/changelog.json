@@ -3,7 +3,9 @@
     "version": "2.0.1 - Mise à jour Auto",
     "date": "10 janvier 2026",
     "features": [
-      "🚀 Implémentation de la mise à jour des nouveautés automatique\nfeat: Badge de notification désormais sur l'icone de la sidebar\nstyle: Changement du nom de l'onglet"
+      "🚀 Implémentation de la mise à jour des nouveautés automatique",
+      "🚀 Badge de notification désormais sur l'icone de la sidebar",
+      "🎨 Changement du nom de l'onglet"
     ]
   },
   {
