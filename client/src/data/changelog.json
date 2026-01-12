@@ -1,5 +1,12 @@
 [
   {
+    "version": "2.1.0 - TypeScript Migration",
+    "date": "12 janvier 2026",
+    "features": [
+      "🚀 Réécriture de Frontend en TypeScript."
+    ]
+  },
+  {
     "version": "2.0.1 - Mise à jour Auto",
     "date": "10 janvier 2026",
     "features": [
