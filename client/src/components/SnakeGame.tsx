@@ -1,16 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 
+interface Point {
+    x: number;
+    y: number;
+}
+
 export default function SnakeGame() {
     const [isOpen, setIsOpen] = useState(false);
-    const canvasRef = useRef(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
     const [score, setScore] = useState(0);
 
     // --- 1. GESTION DU KONAMI CODE ---
     useEffect(() => {
         const secretCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-        let inputSequence = [];
+        let inputSequence: string[] = [];
 
-        const handleKeyDown = (e) => {
+        const handleKeyDown = (e: KeyboardEvent) => {
             inputSequence.push(e.key);
             if (inputSequence.length > secretCode.length) inputSequence.shift();
             
@@ -28,12 +33,14 @@ export default function SnakeGame() {
         if (!isOpen) return;
 
         const canvas = canvasRef.current;
+        if (!canvas) return;
         const ctx = canvas.getContext('2d');
+        if (!ctx) return;
         const boxSize = 20;
-        let snake = [{x: 10 * boxSize, y: 10 * boxSize}];
-        let food = {x: 100, y: 100}; // Temporaire
-        let direction = 'RIGHT';
-        let gameInterval;
+        let snake: Point[] = [{x: 10 * boxSize, y: 10 * boxSize}];
+        let food: Point = {x: 100, y: 100}; // Temporaire
+        let direction = 'LEFT';
+        let gameInterval: number;
         let currentScore = 0;
 
         // Fonction pour spawn la nourriture
@@ -46,7 +53,7 @@ export default function SnakeGame() {
         spawnFood();
 
         // Direction
-        const changeDirection = (e) => {
+        const changeDirection = (e: KeyboardEvent) => {
             const key = e.key;
             if (key === 'ArrowLeft' && direction !== 'RIGHT') direction = 'LEFT';
             else if (key === 'ArrowUp' && direction !== 'DOWN') direction = 'UP';
@@ -87,7 +94,7 @@ export default function SnakeGame() {
                 snake.pop();
             }
 
-            const newHead = { x: snakeX, y: snakeY };
+            const newHead: Point = { x: snakeX, y: snakeY };
 
             // Collision Soi-même
             if (snake.some(segment => segment.x === newHead.x && segment.y === newHead.y)) {

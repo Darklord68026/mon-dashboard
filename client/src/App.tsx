@@ -1,11 +1,16 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import { ReactNode } from 'react';
+
+interface PrivateRouteProps {
+  children: ReactNode;
+}
 
 // Petit composant pour protéger les routes
-function PrivateRoute({ children }) {
+function PrivateRoute({ children }: PrivateRouteProps) {
     const token = localStorage.getItem('token');
-    return token ? children : <Navigate to="/" />;
+    return token ? <>{children}</> : <Navigate to="/" />;
 }
 
 function App() {

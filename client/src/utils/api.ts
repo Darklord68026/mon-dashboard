@@ -1,17 +1,19 @@
-export const API_URL = import.meta.env.PROD
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+
+export const API_URL = (import.meta as any).env?.PROD
     ? '/api'
     : 'http://localhost:3000/api';
 
-export function getToken() {
+export function getToken(): string | null {
     return localStorage.getItem('token');
 }
 
-export async function apiCall(endpoint, method = 'GET', body = null) {
+export async function apiCall<T>(endpoint: string, method: HttpMethod = 'GET', body: any = null): Promise<T | null> {
     const token = getToken();
-    const headers = { 'Content-Type': 'application/json' };
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const config = { method, headers };
+    const config: RequestInit = { method, headers };
     if (body) config.body = JSON.stringify(body);
 
     try {
@@ -32,7 +34,7 @@ export async function apiCall(endpoint, method = 'GET', body = null) {
             return null;
         }
 
-        return data;
+        return data as T;
     } catch (error) {
         console.error("Network Error:", error);
         return null;

@@ -1,26 +1,50 @@
 import { useState } from 'react';
 import { apiCall } from '../utils/api';
 import { useToast } from '../context/ToastContext';
+import { User, Tag } from '../types'; // <--- On utilise nos types officiels
 
-export default function SettingsModal({ isOpen, onClose, user, onTagsUpdated }) {
-    const [activeTab, setActiveTab] = useState('menu'); // 'menu', 'tags', 'security'
+// 1. LES TYPES LOCAUX (Juste pour ce fichier)
+// On définit les onglets autorisés pour éviter les fautes de frappe
+type Tab = 'menu' | 'tags' | 'security';
+
+interface SettingsModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    user: User | null; // L'utilisateur peut être null au chargement
+    // La fonction de mise à jour prend la nouvelle liste de tags
+    onTagsUpdated: (newTags: Tag[]) => void;
+}
+
+export default function SettingsModal({ isOpen, onClose, user, onTagsUpdated }: SettingsModalProps) {
+    // On dit que activeTab ne peut être que 'menu', 'tags' ou 'security'
+    const [activeTab, setActiveTab] = useState<Tab>('menu'); 
+    
     const [newPassword, setNewPassword] = useState('');
-    const [newTag, setNewTag] = useState({ name: '', color: '#ff0000' });
+    
+    // On initialise le nouveau tag. C'est un objet qui respecte l'interface Tag
+    const [newTag, setNewTag] = useState<Tag>({ name: '', color: '#ff0000' });
+    
     const { showToast } = useToast();
 
     if (!isOpen) return null;
+    if (!user) return null; // Sécurité supplémentaire si user est null
 
     // --- GESTION DES TAGS ---
     const handleAddTag = async () => {
         if (!newTag.name.trim()) return showToast("Nom du tag vide", "error");
         
+        // On récupère les tags actuels ou une liste vide
         const currentTags = user.tags || [];
+        // On ajoute le nouveau tag
         const updatedTags = [...currentTags, newTag];
 
-        const res = await apiCall('/user/tags', 'PUT', { tags: updatedTags });
+        // On envoie la nouvelle liste au serveur
+        // On s'attend à recevoir la liste des tags mise à jour en réponse
+        const res = await apiCall<Tag[]>('/user/tags', 'PUT', { tags: updatedTags });
+        
         if (res) {
-            onTagsUpdated(res); // Met à jour le Dashboard
-            setNewTag({ name: '', color: '#ff0000' });
+            onTagsUpdated(res); // Met à jour le Dashboard avec la réponse du serveur
+            setNewTag({ name: '', color: '#ff0000' }); // Reset du formulaire
             showToast("Tag ajouté !", "success");
         }
     };
@@ -29,7 +53,8 @@ export default function SettingsModal({ isOpen, onClose, user, onTagsUpdated }) 
     const handleUpdatePassword = async () => {
         if (!newPassword || newPassword.length < 4) return showToast("Mot de passe trop court", "error");
         
-        const res = await apiCall('/updatePassword', 'PUT', { newPassword });
+        // Ici, on se fiche un peu du retour tant que c'est pas une erreur, donc <any>
+        const res = await apiCall<any>('/updatePassword', 'PUT', { newPassword });
         if (res) {
             showToast("Mot de passe modifié", "success");
             setNewPassword('');
@@ -57,6 +82,7 @@ export default function SettingsModal({ isOpen, onClose, user, onTagsUpdated }) 
                 </div>
                 
                 <div id="settings-tags-list" style={{marginBottom: '20px', maxHeight: '200px', overflowY: 'auto'}}>
+                    {/* On vérifie que user.tags existe avant de mapper */}
                     {user.tags && user.tags.map((tag, idx) => (
                         <div key={idx} className="tag-item">
                             <div className="userTags">
@@ -72,6 +98,7 @@ export default function SettingsModal({ isOpen, onClose, user, onTagsUpdated }) 
                         type="text" 
                         placeholder="Nom (ex: Sport)"
                         value={newTag.name}
+                        // TypeScript sait que c'est un input texte
                         onChange={(e) => setNewTag({...newTag, name: e.target.value})}
                     />
                     <input 

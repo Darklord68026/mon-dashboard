@@ -1,7 +1,12 @@
-import { useState } from 'react';
+import { useState, KeyboardEvent, ChangeEvent, ChangeEventHandler } from 'react';
 import { apiCall } from '../utils/api';
+import { Tag, Task } from '../types';
 
-export default function TaskForm({ userTags }) {
+interface TaskFromProps {
+    userTags: Tag[];
+}
+
+export default function TaskForm({ userTags }: TaskFromProps) {
     const [text, setText] = useState('');
     const [category, setCategory] = useState('Général');
     const [dueDate, setDueDate] = useState('');
@@ -13,15 +18,20 @@ export default function TaskForm({ userTags }) {
         const payload = {
             text,
             category,
-            dueDate: dueDate || null
+            dueDate: dueDate || undefined
         };
 
-        const res = await apiCall('/tasks', 'POST', payload);
+        const res = await apiCall<Task>('/tasks', 'POST', payload);
         
         if (res) {
             // Reset du form
             setText('');
-            // On ne force pas le reload, le Socket s'en charge !
+        }
+    };
+
+    const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            handleSubmit();
         }
     };
 
@@ -31,13 +41,13 @@ export default function TaskForm({ userTags }) {
                 type="text" 
                 placeholder="Nouvelle tâche..." 
                 value={text}
-                onChange={(e) => setText(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setText(e.target.value)}
+                onKeyPress={handleKeyPress}
             />
             
             <select 
                 value={category} 
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setCategory(e.target.value)}
             >
                 {userTags.map(tag => (
                     <option key={tag.name} value={tag.name}>{tag.name}</option>
@@ -47,10 +57,10 @@ export default function TaskForm({ userTags }) {
             <input 
                 type="date" 
                 value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setDueDate(e.target.value)}
             />
             
-            <button id="add-task-btn" onClick={handleSubmit}>Ajouter</button>
+            <button id="add-task-btn" onClick={() => handleSubmit()}>Ajouter</button>
         </div>
     );
 }

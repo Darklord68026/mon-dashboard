@@ -1,8 +1,13 @@
-import { useState } from 'react';
+import { useState, ChangeEvent } from 'react';
 import { apiCall } from '../utils/api';
 import { useToast } from '../context/ToastContext';
 
-export default function SuggestionBox({ isOpen, onClose }) {
+interface SuggestionBoxProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+export default function SuggestionBox({ isOpen, onClose }: SuggestionBoxProps) {
     const [text, setText] = useState('');
     const { showToast } = useToast();
 
@@ -11,7 +16,7 @@ export default function SuggestionBox({ isOpen, onClose }) {
     const handleSend = async () => {
         if (!text.trim()) return showToast("Vide !", "error");
         
-        const res = await apiCall('/suggestions', 'POST', { text });
+        const res = await apiCall<any>('/suggestions', 'POST', { text });
         if (res) {
             showToast("Suggestion envoyée !", "success");
             setText('');
@@ -31,7 +36,7 @@ export default function SuggestionBox({ isOpen, onClose }) {
                     id="suggestion-text" 
                     placeholder="Ex: Ajoute un mode sombre..."
                     value={text}
-                    onChange={(e) => setText(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setText(e.target.value)}
                 ></textarea>
                 <button id="send-suggestion-btn" onClick={handleSend}>Envoyer 📩</button>
             </div>

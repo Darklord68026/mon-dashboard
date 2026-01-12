@@ -42,7 +42,7 @@ jobs:
           echo "Analyse : $COMMIT_MSG"
           
           # Lancement du script IA
-          node scripts/update-changelog.js "$COMMIT_MSG"
+          npx tsx scripts/update-changelog.js "$COMMIT_MSG"
         continue-on-error: true
 
       - name: 💾 Sauvegarder le Changelog sur GitHub

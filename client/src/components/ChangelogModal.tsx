@@ -1,12 +1,17 @@
-import React from 'react';
+import { MouseEvent } from 'react';
 import updates from '../data/changelog.json';
 
-export default function ChangelogModal({ isOpen, onClose }) {
+interface ChangelogModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+export default function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
     if (!isOpen) return null;
 
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-box" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-box" style={{ maxWidth: '500px' }} onClick={(e: MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
                 <div className="modal-header">
                     <h2>🚀 Nouveautés <span className="new-tag">LIVE</span></h2>
                     <button onClick={onClose} className="btn-icon">&times;</button>

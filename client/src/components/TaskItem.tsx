@@ -1,17 +1,30 @@
-import { apiCall } from '../utils/api';
+import { useState } from 'react';
+import { Task, Tag } from '../types';
 
-export default function TaskItem({ task, userTags, onDelete, onUpdate }) {
-    // 1. Gestion de la Couleur (basé sur ui.js)
+// 1. LES FORMES
+
+// CORRECTION : On utilise bien 'text' ici !
+
+interface TaskItemProps {
+    task: Task;
+    userTags: Tag[];
+    onDelete: (id: string) => void;
+    onUpdate: (task: Task) => void;
+}
+
+export default function TaskItem({ task, userTags, onDelete, onUpdate }: TaskItemProps) {
+    
+    // 1. Gestion de la Couleur
     const tagConfig = userTags.find(t => t.name === task.category);
     const color = tagConfig ? tagConfig.color : '#888';
 
-    // 2. Gestion de la Date (basé sur ui.js)
-    const formatDate = (dateString) => {
+    // 2. Gestion de la Date
+    const formatDate = (dateString?: string) => {
         if (!dateString) return null;
         const d = new Date(dateString);
         const today = new Date();
         today.setHours(0,0,0,0);
-        const isLate = d < today;
+        const isLate = d.getTime() < today.getTime();
         
         return (
             <small className={isLate ? 'date-late' : ''} style={{ color: isLate ? '' : '#aaaaaa', fontSize: '0.75rem' }}>
@@ -20,21 +33,22 @@ export default function TaskItem({ task, userTags, onDelete, onUpdate }) {
         );
     };
 
-    // 3. Gestion de l'Édition (Prompt simple pour l'instant)
-    const handleEdit = async () => {
+    // 3. Gestion de l'Édition
+    const handleEdit = () => {
+        // On utilise task.text pour pré-remplir la boîte de dialogue
         const newText = prompt("Modifier la tâche :", task.text);
+        
         if (newText && newText.trim() !== "") {
-            // Optimistic Update (Optionnel) ou attente serveur
-            // Ici on appelle l'API, le Socket mettra à jour l'interface
-            await apiCall(`/tasks/${task._id}`, 'PUT', { text: newText });
+            // On met à jour la propriété 'text'
+            const updatedTask = { ...task, text: newText };
+            onUpdate(updatedTask);
         }
     };
 
     // 4. Gestion de la Suppression
-    const handleDelete = async () => {
+    const handleDelete = () => {
         if(confirm("Supprimer ?")) {
-            await apiCall(`/tasks/${task._id}`, 'DELETE');
-            // Pas besoin d'appeler onDelete() ici, le Socket le fera
+            onDelete(task._id);
         }
     };
 
@@ -54,6 +68,7 @@ export default function TaskItem({ task, userTags, onDelete, onUpdate }) {
             }}
         >
             <div className="task-content">
+                {/* On affiche task.text */}
                 <span className="task-text" style={{ fontWeight: 500, fontSize: '1rem', display: 'block', color: 'white' }}>
                     {task.text}
                 </span>

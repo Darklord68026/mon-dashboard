@@ -1,11 +1,10 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef, ChangeEvent } from 'react';
 import { apiCall } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { ReactSortable } from "react-sortablejs";
-import io from 'socket.io-client';
+import io, { Socket } from 'socket.io-client'; // <--- Import du type Socket
 import { useToast } from '../context/ToastContext';
 
-// Composants
 import Sidebar from '../components/Sidebar';
 import ChatWindow from '../components/ChatWindow';
 import WeatherWidget from '../components/WeatherWidget';
@@ -16,28 +15,41 @@ import SettingsModal from '../components/SettingsModal';
 import SuggestionBox from '../components/SuggestionBox';
 import AdminInbox from '../components/AdminInbox';
 import ChangelogModal from '../components/ChangelogModal';
+import { Tag, Task, User } from '../types';
 
-const SOCKET_URL = import.meta.env.PROD ? '/' : 'http://localhost:3000';
+// Pour le compteur de messages non lus
+interface UnreadResponse {
+    count: number;
+}
+
+// Pour les messages reçus par socket
+interface ChatMessage {
+    sender: User | string; // Parfois c'est l'objet complet, parfois juste l'ID
+    content: string;
+}
+
+const SOCKET_URL = (import.meta as any).env.PROD ? '/' : 'http://localhost:3000';
 
 export default function Dashboard() {
-    const [user, setUser] = useState(null);
-    const [tasks, setTasks] = useState([]);
-    const [socket, setSocket] = useState(null);
+    // --- 2. LES BOÎTES TYPÉES (STATE) ---
     
-    // Horloge
+    // "Cette boîte contient soit un User, soit rien (null)"
+    const [user, setUser] = useState<User | null>(null);
+    
+    // "Cette boîte contient une liste de Tâches (tableau)"
+    const [tasks, setTasks] = useState<Task[]>([]);
+    
+    // "Cette boîte contient la connexion Socket"
+    const [socket, setSocket] = useState<Socket | null>(null);
+    
     const [time, setTime] = useState({ hm: "00:00", s: "00" });
-    
-    // Mode Zen (Cacher l'interface)
     const [isZenMode, setIsZenMode] = useState(false);
 
-    // Filtres
     const [filterTag, setFilterTag] = useState('all');
     const [sortOrder, setSortOrder] = useState('date-asc');
 
-    // Notification
     const [unreadCount, setUnreadCount] = useState(0);
 
-    // Modals
     const [modals, setModals] = useState({
         sidebar: false, chat: false, settings: false, suggestion: false, inbox: false, changelog: false
     });
@@ -50,25 +62,35 @@ export default function Dashboard() {
 
     const navigate = useNavigate();
     const { showToast } = useToast();
-    const toggleModal = (name, value) => setModals(prev => ({ ...prev, [name]: value }));
+    
+    // Typage simple pour name (clé de l'objet modals) et value (boolean)
+    const toggleModal = (name: keyof typeof modals, value: boolean) => 
+        setModals(prev => ({ ...prev, [name]: value }));
 
-    // 1. Initialisation Données
+    // 3. Initialisation Données avec API CALL TYPÉ
     useEffect(() => {
         async function initData() {
-            const userData = await apiCall('/user/me');
+            // Regarde la magie : <User>
+            const userData = await apiCall<User>('/user/me');
             if (!userData) return navigate('/');
             setUser(userData);
-            const tasksData = await apiCall('/tasks');
-            if (tasksData) setTasks(tasksData);
-            const unreadData = await apiCall('/chat/unread');
-            if (unreadData && unreadData.count) {
+
+            // Regarde la magie : <Task[]> (Tableau de Task)
+            const tasksData = await apiCall<any[]>('/tasks');
+            if (tasksData) {
+                const formattedTasks: Task[] = tasksData.map(t => ({ ...t, id: t._id }));
+                setTasks(formattedTasks);
+            }
+
+            const unreadData = await apiCall<UnreadResponse>('/chat/unread');
+            if (unreadData && typeof unreadData.count === 'number') {
                 setUnreadCount(unreadData.count);
             }
         }
         initData();
     }, [navigate]);
 
-    // 2. Horloge (Heures + Minutes + Secondes)
+    // 4. Horloge
     useEffect(() => {
         const updateClock = () => {
             const now = new Date();
@@ -82,51 +104,65 @@ export default function Dashboard() {
         return () => clearInterval(interval);
     }, []);
 
-    // 3. Mode Zen (Double Clic)
+    // 5. Mode Zen
     useEffect(() => {
-        const handleDoubleClick = (e) => {
-            // SÉCURITÉ : On ne déclenche pas si on clique sur un input/bouton
-            if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(e.target.tagName)) return;
-            // On bascule le mode Zen
+        // e est un MouseEvent
+        const handleDoubleClick = (e: MouseEvent) => {
+            const target = e.target as HTMLElement; // On affirme que c'est un élément HTML
+            if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(target.tagName)) return;
             setIsZenMode(prev => !prev);
         };
         document.addEventListener('dblclick', handleDoubleClick);
         return () => document.removeEventListener('dblclick', handleDoubleClick);
     }, []);
 
-    // 4. Sockets
+    // 6. Sockets
     useEffect(() => {
         if (!user) return;
         const newSocket = io(SOCKET_URL, { transports: ['websocket'] });
         setSocket(newSocket);
-        newSocket.on('taskAdded', (t) => setTasks(prev => [t, ...prev]));
-        newSocket.on('taskDeleted', (id) => setTasks(prev => prev.filter(t => t._id !== id)));
-        newSocket.on('taskUpdated', (t) => setTasks(prev => prev.map(old => old._id === t._id ? t : old)));
-        newSocket.on('newSuggestion', (data) => {
+
+        // Ici on type les données reçues par le socket
+        newSocket.on('taskAdded', (t: any) => {
+            const newTask: Task = { ...t, id: t._id};
+            setTasks(prev => [newTask, ...prev]);
+        });
+        newSocket.on('taskDeleted', (id: string) => setTasks(prev => prev.filter(t => t._id !== id)));
+        newSocket.on('taskUpdated', (t: Task) => setTasks(prev => prev.map(old => old._id === t._id ? { ...t, id: t._id} : old)));
+        
+        newSocket.on('newSuggestion', (data: { author: string }) => {
             if (user?.role === 'admin') showToast(`💡 Nouvelle idée de ${data.author}`, "info");
         });
-        newSocket.on('chatMessage', (msg) => {
-            // Est-ce que le message vient de moi ?
-            const senderId = typeof msg.sender === 'object' ? msg.sender._id : msg.sender;
-            if (senderId === user?.id) return; // Pas de notif pour soi-même
 
-            // Si le chat est fermé, on incrémente le compteur
+        newSocket.on('chatMessage', (msg: ChatMessage) => {
+            // On gère le cas où sender est un objet ou juste un ID
+            const senderId = typeof msg.sender === 'object' ? msg.sender._id : msg.sender;
+
+            if (senderId === user?._id) return; 
+
             if (!isChatOpenRef.current) {
                 setUnreadCount(prev => prev + 1);
-                showToast(`💬 Nouveau message de ${msg.sender.name}`, "info");
+                const senderName = typeof msg.sender === 'object' ? msg.sender.username : 'Quelqu\'un';
+                showToast(`💬 Nouveau message de ${senderName}`, "info");
             }
         });
-        return () => newSocket.disconnect();
+        return () => { newSocket.disconnect(); };
     }, [user, showToast]);
 
-    // 5. RESET DU COMPTEUR QUAND ON OUVRE LE CHAT
+    const handleDeleteTask = async (id: string) => {
+        await apiCall(`tasks/${id}`, 'DELETE');
+    };
+
+    const handleUpdateTask = async (updatedTask: Task) => {
+        await apiCall(`/tasks/${updatedTask._id}`, 'PUT', updatedTask);
+    };
+
     const openChat = () => {
-        setUnreadCount(0); // On remet à zéro
+        setUnreadCount(0);
         toggleModal('sidebar', false);
         toggleModal('chat', true);
     };
 
-    // 6. Logique de Tri/Filtre (identique à ui.js)
     const processedTasks = useMemo(() => {
         let filtered = [...tasks];
         if (filterTag !== 'all') filtered = filtered.filter(t => t.category === filterTag);
@@ -148,10 +184,10 @@ export default function Dashboard() {
     }, [tasks, filterTag, sortOrder]);
 
     if (!user) return <div className="login-container"><div className="login-box">Chargement...</div></div>;
+    
     const tags = user.tags || [{name: 'Général', color: '#888'}];
 
     return (
-        // Si Mode Zen activé, on cache tout le contenu sauf le fond d'écran
         <div id="dashboard-screen" style={{ opacity: isZenMode ? 0 : 1, transition: 'opacity 0.5s ease' }}>
             
             <header>
@@ -159,7 +195,6 @@ export default function Dashboard() {
                     ☰
                     {unreadCount > 0 && <span className="burger-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}
                 </button>
-                {/* Structure exacte de ton ancienne horloge */}
                 <div id="clock-container" className="clock-floating">
                     <div id="clock">{time.hm}</div>
                     <div id="clock-seconds" style={{fontSize: '1.25rem'}}>{time.s}</div>
@@ -185,7 +220,7 @@ export default function Dashboard() {
                 user={user}
                 socket={socket}
                 onReadMessages={async () => {
-                    const unreadData = await apiCall('/chat/unread');
+                    const unreadData = await apiCall<UnreadResponse>('/chat/unread');
                     if (unreadData) setUnreadCount(unreadData.count);
                 }}
             />
@@ -194,7 +229,7 @@ export default function Dashboard() {
                 isOpen={modals.settings}
                 onClose={() => toggleModal('settings', false)}
                 user={user}
-                onTagsUpdated={(newTags) => setUser({...user, tags: newTags})}
+                onTagsUpdated={(newTags: Tag[]) => setUser({...user, tags: newTags})}
             />
 
             <SuggestionBox 
@@ -223,7 +258,8 @@ export default function Dashboard() {
                     <div className="input-group flex-between" style={{marginBottom: '15px', background: 'transparent', border: 'none', padding: 0}}>
                         <select 
                             value={filterTag} 
-                            onChange={(e) => setFilterTag(e.target.value)}
+                            // Ici on dit à TS : "C'est un événement de changement sur un élément SELECT"
+                            onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterTag(e.target.value)}
                             style={{width: '48%', cursor: 'pointer'}}
                         >
                             <option value="all">Tout voir</option>
@@ -234,7 +270,7 @@ export default function Dashboard() {
 
                         <select 
                             value={sortOrder}
-                            onChange={(e) => setSortOrder(e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLSelectElement>) => setSortOrder(e.target.value)}
                             style={{width: '48%', cursor: 'pointer'}}
                         >
                             <option value="date-asc">📅 Urgent</option>
@@ -244,9 +280,9 @@ export default function Dashboard() {
                     </div>
 
                     <ul id="task-list" style={{listStyle:'none', padding:0}}>
-                        <ReactSortable list={processedTasks} setList={setTasks} ghostClass="sortable-ghost" animation={150}>
+                        <ReactSortable<Task> list={tasks} setList={setTasks} ghostClass="sortable-ghost" animation={150}>
                             {processedTasks.map(task => (
-                                <TaskItem key={task._id} task={task} userTags={tags} />
+                                <TaskItem key={task._id} task={task} userTags={tags} onDelete={handleDeleteTask} onUpdate={handleUpdateTask} />
                             ))}
                         </ReactSortable>
                         {processedTasks.length === 0 && <li style={{textAlign:'center', padding:'20px', color:'#666'}}>Aucune tâche 🧐</li>}

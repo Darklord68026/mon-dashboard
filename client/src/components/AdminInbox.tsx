@@ -2,13 +2,32 @@ import { useState, useEffect } from 'react';
 import { apiCall } from '../utils/api';
 import { useToast } from '../context/ToastContext';
 
-export default function AdminInbox({ isOpen, onClose }) {
-    const [suggestions, setSuggestions] = useState([]);
+// 1. LA FORME D'UNE SUGGESTION (La Carte Postale)
+// Je le définis ici car c'est utilisé uniquement dans cette page pour l'instant.
+// Si tu l'utilises ailleurs, tu pourras le bouger dans 'types.ts'.
+interface Suggestion {
+    _id: string;
+    text: string;
+    author: string; // Le nom de la personne
+}
+
+// 2. LE CONTRAT (Props)
+interface AdminInboxProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+export default function AdminInbox({ isOpen, onClose }: AdminInboxProps) {
+    // On précise que c'est une liste de Suggestion (tableau)
+    const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+    
     const { showToast } = useToast();
 
     useEffect(() => {
         if (isOpen) {
-            apiCall('/suggestions').then(data => {
+            // 3. LA BOÎTE MAGIQUE
+            // On dit à l'API : "Ramène-moi une liste de Suggestion s'il te plaît"
+            apiCall<Suggestion[]>('/suggestions').then(data => {
                 if (data) setSuggestions(data);
             });
         }
@@ -16,10 +35,15 @@ export default function AdminInbox({ isOpen, onClose }) {
 
     if (!isOpen) return null;
 
-    const handleDelete = async (id) => {
+    // On précise que l'ID est une chaîne de caractères (string)
+    const handleDelete = async (id: string) => {
         if (!confirm("Supprimer ?")) return;
+        
+        // On supprime via l'API
         const res = await apiCall(`/suggestions/${id}`, 'DELETE');
+        
         if (res) {
+            // On met à jour la liste locale en enlevant celui qu'on vient de supprimer
             setSuggestions(prev => prev.filter(s => s._id !== id));
             showToast("Supprimé", "success");
         }

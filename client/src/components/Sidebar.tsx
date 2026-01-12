@@ -1,12 +1,35 @@
-import React from 'react';
+import { User } from '../types';
 
-export default function Sidebar({ user, isOpen, onClose, onOpenChat, onOpenSettings, onOpenSuggestion, onOpenInbox, onOpenChangelog, onLogout, unreadCount }) {
+interface SidebarProps {
+    user: User | null;
+    isOpen: boolean;
+    unreadCount: number;
+    onClose: () => void;
+    onOpenChat: () => void;
+    onOpenSettings: () => void;
+    onOpenSuggestion: () => void;
+    onOpenInbox: () => void;
+    onOpenChangelog: () => void;
+    onLogout: () => void;
+}
+
+export default function Sidebar({ 
+    user, 
+    isOpen, 
+    onClose, 
+    onOpenChat, 
+    onOpenSettings, 
+    onOpenSuggestion, 
+    onOpenInbox, 
+    onOpenChangelog, 
+    onLogout, 
+    unreadCount 
+}: SidebarProps) {
+
+    // CORRECTION : On utilise bien 'username' ici
     const pseudo = user?.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : 'Toi';
     
-    // Détection de la PROD (Vite feature)
-    const isProd = import.meta.env.PROD; 
-
-    // Gestion de l'affichage du badge (Max 9+)
+    const isProd = (import.meta as any).env.PROD; 
     const displayBadge = unreadCount > 9 ? '9+' : unreadCount;
 
     return (
@@ -25,7 +48,6 @@ export default function Sidebar({ user, isOpen, onClose, onOpenChat, onOpenSetti
                 
                 <button className="menu-item" onClick={onOpenChat}>
                     💬 Discussions
-                    {/* LE BADGE ROUGE EST ICI 👇 */}
                     {unreadCount > 0 && (
                         <span className="notification-badge">{displayBadge}</span>
                     )}
@@ -33,7 +55,6 @@ export default function Sidebar({ user, isOpen, onClose, onOpenChat, onOpenSetti
                 
                 <button className="menu-item" onClick={onOpenSettings}>⚙️ Paramètres</button>
                 
-                {/* BOUTON SPECIAL PROD 👇 */}
                 {isProd && (
                     <button className="menu-item" onClick={onOpenChangelog} style={{ color: '#4dabf7' }}>
                         🚀 Nouveautés

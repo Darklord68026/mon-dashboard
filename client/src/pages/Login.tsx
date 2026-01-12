@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { apiCall } from "../utils/api";
 import { useNavigate } from "react-router-dom";
+
+interface LoginResponse {
+    token: string;
+}
 
 export default function Login() {
     const [username, setUsername] = useState('');
@@ -8,10 +12,10 @@ export default function Login() {
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
-    const handleLogin = async (e) => {
+    const handleLogin = async (e: FormEvent) => {
         e.preventDefault();
         // appel API basé sur auth.js
-        const data = await apiCall('/login', 'POST', { username, password });
+        const data = await apiCall<LoginResponse>('/login', 'POST', { username, password });
 
         if (data && data.token) {
             localStorage.setItem('token', data.token);
