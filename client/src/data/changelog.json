@@ -3,6 +3,7 @@
     "version": "2.1.1 - Mise à jour Auto",
     "date": "14 janvier 2026",
     "features": [
+      "🐛 notifs",
       "🚀 notifications hors app",
       "🚀 Supprimer un compte depuis sécurité\nfeat: asyncHandler et AppError appliqués aux routes",
       "🐛 Correction API suppression taches"
