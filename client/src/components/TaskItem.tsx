@@ -3,8 +3,6 @@ import { Task, Tag } from '../types';
 
 // 1. LES FORMES
 
-// CORRECTION : On utilise bien 'text' ici !
-
 interface TaskItemProps {
     task: Task;
     userTags: Tag[];

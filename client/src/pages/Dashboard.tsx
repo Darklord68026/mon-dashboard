@@ -150,7 +150,7 @@ export default function Dashboard() {
     }, [user, showToast]);
 
     const handleDeleteTask = async (id: string) => {
-        await apiCall(`tasks/${id}`, 'DELETE');
+        await apiCall(`/tasks/${id}`, 'DELETE');
     };
 
     const handleUpdateTask = async (updatedTask: Task) => {
