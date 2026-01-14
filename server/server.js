@@ -13,6 +13,7 @@ const userRoutes = require('./routes/user');
 const chatRoutes = require('./routes/chat');
 const suggestionRoutes = require('./routes/suggestions');
 const weatherRoutes = require('./routes/weather');
+const notificationRoutes = require('./routes/notifications');
 
 const app = express();
 const PORT = 3000;
@@ -54,6 +55,7 @@ app.use('/api/user', userRoutes);  // Gère /api/user/...
 app.use('/api/chat', chatRoutes);  // Gère /api/chat/
 app.use('/api/suggestions', suggestionRoutes); // Gère /api/suggestions...
 app.use('/api', weatherRoutes);    // Gère /api/background
+app.use('/api/notifications', notificationRoutes); // Gère /api/notifications
 
 app.use((req, res, next) => {
     // On crée une erreur manuellement pour la passer au ErrorHandler

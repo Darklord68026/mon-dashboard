@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { apiCall } from '../utils/api';
 import { useToast } from '../context/ToastContext';
 import { User, Tag } from '../types'; // <--- On utilise nos types officiels
+import { urlBase64ToUint8Array } from '../utils/urlBase64ToUint8Array';
 
 // 1. LES TYPES LOCAUX (Juste pour ce fichier)
 // On définit les onglets autorisés pour éviter les fautes de frappe
@@ -86,6 +87,31 @@ export default function SettingsModal({ isOpen, onClose, user, onTagsUpdated }: 
         }
     };
 
+    const subscribeToPush = async () => {
+        if (!('serviceWorker' in navigator)) return showToast("Non supporté", "error");
+
+        try {
+            // 1. Enregistrer le Service Worker
+            const register = await navigator.serviceWorker.register('/sw.js', {
+                scope: '/'
+            });
+
+            // 2. Demander la permission et s'abonner
+            const subscription = await register.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array((import.meta as any).env.VITE_VAPID_PUBLIC_KEY)
+            });
+
+            // 3. Envoyer l'abonnement au backend
+            await apiCall('/notifications/subscribe', 'POST', subscription);
+            showToast("Notifications activées ! 🔔", "success");
+
+        } catch (err) {
+            console.error(err);
+            showToast("Erreur activation notifs", "error");
+        }
+    };
+
     // Rendu du contenu selon l'onglet actif
     const renderContent = () => {
         if (activeTab === 'menu') return (
@@ -96,6 +122,7 @@ export default function SettingsModal({ isOpen, onClose, user, onTagsUpdated }: 
                 </div>
                 <button onClick={() => setActiveTab('tags')} className="menu-item">🏷️ Gérer les Tags</button>
                 <button onClick={() => setActiveTab('security')} className="menu-item">🔒 Sécurité</button>
+                <button onClick={subscribeToPush} className="menu-item">🔔 Activer les Notifications</button>
             </div>
         );
 
