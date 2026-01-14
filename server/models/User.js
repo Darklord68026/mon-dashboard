@@ -11,7 +11,8 @@ const userSchema = new mongoose.Schema({
             { name: "Devoirs", color: "#4dabf7" }
         ]
     },
-    role: { type: String, default: 'user' } // Peut être 'user' ou 'admin'
+    role: { type: String, default: 'user' }, // Peut être 'user' ou 'admin'
+    subscription: { type: Object, default: null }
 });
 
 module.exports = mongoose.model('User', userSchema);

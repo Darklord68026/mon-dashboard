@@ -104,6 +104,7 @@ export default function SettingsModal({ isOpen, onClose, user, onTagsUpdated }: 
 
             // 3. Envoyer l'abonnement au backend
             await apiCall('/notifications/subscribe', 'POST', subscription);
+            await apiCall('/user/subscribe', 'PUT', { subscription });
             showToast("Notifications activées ! 🔔", "success");
 
         } catch (err) {

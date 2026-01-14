@@ -120,6 +120,9 @@ export default function Dashboard() {
     useEffect(() => {
         if (!user) return;
         const newSocket = io(SOCKET_URL, { transports: ['websocket'] });
+        if (user) {
+            newSocket.emit("setup", user);
+        }
         setSocket(newSocket);
 
         // Ici on type les données reçues par le socket
@@ -134,16 +137,31 @@ export default function Dashboard() {
             if (user?.role === 'admin') showToast(`💡 Nouvelle idée de ${data.author}`, "info");
         });
 
-        newSocket.on('chatMessage', (msg: ChatMessage) => {
-            // On gère le cas où sender est un objet ou juste un ID
+        newSocket.on('chatMessage', (msg: any) => {
+            // On normalise l'ID
             const senderId = typeof msg.sender === 'object' ? msg.sender._id : msg.sender;
+            
+            // On ignore ses propres messages
+            if (senderId === user?._id) return;
 
-            if (senderId === user?._id) return; 
-
+            // CAS 1 : SOCKET CONNECTÉ MAIS CHAT FERMÉ
+            // Si le chat est fermé, on envoie une notif locale immédiate
             if (!isChatOpenRef.current) {
+                
+                // A. Mise à jour du compteur
                 setUnreadCount(prev => prev + 1);
-                const senderName = typeof msg.sender === 'object' ? msg.sender.username : 'Quelqu\'un';
-                showToast(`💬 Nouveau message de ${senderName}`, "info");
+
+                // B. Toast interne
+                const senderName = msg.senderName || 'Quelqu\'un';
+                showToast(`💬 ${senderName}: ${msg.text}`, "info");
+
+                // C. Notif Navigateur (Si permission accordée)
+                if (Notification.permission === "granted") {
+                    new Notification(`💬 ${senderName}`, {
+                        body: msg.text,
+                        icon: '/vite.svg'
+                    });
+                }
             }
         });
         return () => { newSocket.disconnect(); };

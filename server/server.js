@@ -33,6 +33,12 @@ const io = new Server(server, {
 
 io.on('connection', (socket) => {
     console.log("⚡ Utilisateur connecté WebSocket :", socket.id);
+
+    socket.on('setup', (userData) => {
+        socket.join(userData._id);
+        socket.emit('connected');
+        console.log(`✅ ${userData.username} a rejoint sa room perso`);
+    });
 });
 
 // --- MIDDLEWARE MAGIQUE POUR SOCKET.IO ---

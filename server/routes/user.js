@@ -27,4 +27,11 @@ router.put('/tags', authMiddleware, async (req, res) => {
     res.json(user.tags);
 });
 
+router.put('/subscribe', authMiddleware, asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id);
+    user.subscription = req.body.subscription; // On sauvegarde l'abonnement
+    await user.save();
+    res.json({ message: "Notifications activées !" });
+}));
+
 module.exports = router;

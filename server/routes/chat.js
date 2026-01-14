@@ -4,50 +4,47 @@ const Message = require('../models/Message');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/auth');
 const asyncHandler = require('../utils/asyncHandler');
-const AppError = require('../utils/AppError');
+const webpush = require('web-push');
 
-// 1. GET /api/chat/unread (NOUVEAU : Compter les messages non lus pour MOI)
+// Config WebPush
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    webpush.setVapidDetails(
+        'mailto:admin@mondashboard.com',
+        process.env.VAPID_PUBLIC_KEY,
+        process.env.VAPID_PRIVATE_KEY
+    );
+}
+
+// 1. GET /api/chat/unread (Compter les messages non lus)
 router.get('/unread', authMiddleware, asyncHandler(async (req, res) => {
     const myId = req.user.userId || req.user._id;
-    
-    // On compte les messages où JE suis le destinataire ET qui ne sont pas lus
-    const count = await Message.countDocuments({ 
-        receiver: myId, 
-        isRead: false 
-    });
-    
+    const count = await Message.countDocuments({ receiver: myId, isRead: false });
     res.json({ count });
 }));
 
-// 2. PUT /api/chat/read (NOUVEAU : Marquer comme lu quand j'ouvre le chat)
+// 2. PUT /api/chat/read (Marquer comme lu)
 router.put('/read', authMiddleware, asyncHandler(async (req, res) => {
     const myId = req.user.userId || req.user._id;
-    const { contactId } = req.body; // L'ID de la personne avec qui je parle
+    const { contactId } = req.body;
 
-    // Si on est sur le général (pas de contactId), on ne fait rien car pas de statut "lu" global
     if (!contactId || contactId === 'general') return res.json({ success: true });
 
-    // Je mets à jour tous les messages que CE contact m'a envoyés et que je n'ai pas lus
     await Message.updateMany(
         { sender: contactId, receiver: myId, isRead: false },
         { $set: { isRead: true } }
     );
-
     res.json({ success: true });
 }));
 
-// GET /api/chat?contactId=... (Récupérer l'historique)
+// 3. GET /api/chat (Historique)
 router.get('/', authMiddleware, asyncHandler(async (req, res) => {
     const myId = req.user.userId || req.user._id;
     const contactId = req.query.contactId;
 
     let filter = {};
-
     if (!contactId || contactId === 'general') {
-        // Chat Général (Messages sans destinataire)
         filter = { receiver: null };
     } else {
-        // Chat Privé : (Moi -> Lui) OU (Lui -> Moi)
         filter = {
             $or: [
                 { sender: myId, receiver: contactId },
@@ -56,33 +53,58 @@ router.get('/', authMiddleware, asyncHandler(async (req, res) => {
         };
     }
 
-    const messages = await Message.find(filter)
-        .sort({ createdAt: 1 }) // Chronologique
-        .limit(50); // Les 50 derniers
-            
+    const messages = await Message.find(filter).sort({ createdAt: 1 }).limit(50);
     res.json(messages);
 }));
 
-// POST /api/chat (Envoyer un message)
+// 4. POST /api/chat (ENVOI + NOTIFS SÉCURISÉES)
 router.post('/', authMiddleware, asyncHandler(async (req, res) => {
     const { text, receiverId } = req.body;
-    const user = await User.findById(req.user.userId || req.user._id);
-        
-    // Si receiverId est 'general' ou vide, on met null
+    // On récupère l'expéditeur complet
+    const sender = await User.findById(req.user.userId || req.user._id);
+    
+    // Si receiverId est vide ou 'general', c'est un message public
     const finalReceiver = (receiverId === 'general' || !receiverId) ? null : receiverId;
 
     const newMsg = new Message({
         text,
-        sender: user._id,
-        senderName: user.username,
+        sender: sender._id,
+        senderName: sender.username,
         receiver: finalReceiver,
-        isRead: false // Explicite : par défaut c'est non lu
+        isRead: false 
     });
 
     await newMsg.save();
 
-    // On envoie à tout le monde (le tri se fera côté client pour l'affichage temps réel)
-    req.io.emit('chatMessage', newMsg);
+    // --- PARTIE 1 : SOCKET (Temps réel) ---
+    if (!finalReceiver) {
+        // Chat Général : On envoie à tout le monde
+        req.io.emit('chatMessage', newMsg);
+    } else {
+        // Chat Privé : On envoie uniquement aux deux personnes (via les Rooms)
+        req.io.to(finalReceiver).emit('chatMessage', newMsg); // Au destinataire
+        req.io.to(sender._id.toString()).emit('chatMessage', newMsg); // À moi-même (pour l'affichage immédiat)
+    }
+
+    // --- PARTIE 2 : PUSH NOTIFICATION (Quand socket fermé) ---
+    // On n'envoie de Push QUE si c'est un message privé (pour éviter le spam du Général)
+    if (finalReceiver) {
+        const receiverUser = await User.findById(finalReceiver);
+        
+        // On vérifie s'il a activé les notifs
+        if (receiverUser && receiverUser.subscription) {
+            const payload = JSON.stringify({
+                title: `💬 ${sender.username}`,
+                body: text,
+                icon: '../../client/public/vite.svg'
+            });
+
+            webpush.sendNotification(receiverUser.subscription, payload)
+                .catch(err => {
+                    console.error("Erreur Push:", err);
+                });
+        }
+    }
 
     res.json(newMsg);
 }));
