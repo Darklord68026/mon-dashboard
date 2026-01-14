@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 
 type ToastType = 'info' | 'success' | 'error';
 
@@ -26,6 +26,20 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             setToasts(prev => prev.filter(t => t.id !== id));
         }, 3000);
     }, []);
+
+    useEffect(() => {
+        // La fonction qui se déclenche quand le signal arrive
+        const handleExternalToast = (event: any) => {
+            const { message, type } = event.detail;
+            showToast(message, type);
+        };
+
+        // On branche l'écouteur
+        window.addEventListener('SHOW_TOAST', handleExternalToast);
+
+        // On débranche quand on quitte (propreté)
+        return () => window.removeEventListener('SHOW_TOAST', handleExternalToast);
+    }, [showToast]);
 
     return (
         <ToastContext.Provider value={{ showToast }}>

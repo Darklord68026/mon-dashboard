@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiCall } from '../utils/api';
 import { useToast } from '../context/ToastContext';
 import { User, Tag } from '../types'; // <--- On utilise nos types officiels
@@ -25,6 +26,7 @@ export default function SettingsModal({ isOpen, onClose, user, onTagsUpdated }: 
     const [newTag, setNewTag] = useState<Tag>({ name: '', color: '#ff0000' });
     
     const { showToast } = useToast();
+    const navigate = useNavigate();
 
     if (!isOpen) return null;
     if (!user) return null; // Sécurité supplémentaire si user est null
@@ -58,6 +60,29 @@ export default function SettingsModal({ isOpen, onClose, user, onTagsUpdated }: 
         if (res) {
             showToast("Mot de passe modifié", "success");
             setNewPassword('');
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        // Double sécurité pour éviter les clics accidentels
+        const confirm1 = confirm("⚠️ Es-tu sûr de vouloir supprimer ton compte ?");
+        if (!confirm1) return;
+
+        const confirm2 = confirm("⛔️ Cette action est IRRÉVERSIBLE. Toutes tes données seront perdues.");
+        if (!confirm2) return;
+
+        const res = await apiCall('/user/deleteAccount', 'DELETE');
+        
+        if (res) {
+            showToast("Compte supprimé. Au revoir !", "info");
+            // 1. On nettoie le stockage
+            localStorage.removeItem('token');
+            // 2. On ferme le modal
+            onClose();
+            // 3. On redirige vers la page de login
+            navigate('/');
+            // 4. On recharge la page pour être sûr de tout nettoyer
+            window.location.reload();
         }
     };
 
@@ -125,6 +150,24 @@ export default function SettingsModal({ isOpen, onClose, user, onTagsUpdated }: 
                     onChange={(e) => setNewPassword(e.target.value)}
                 />
                 <button id="btn-updatePassword" onClick={handleUpdatePassword}>Mettre à jour</button>
+                <hr style={{margin: '20px 0', borderColor: '#444'}} />
+                <h4 style={{color: '#ff6b6b', marginTop: 0}}>Zone de Danger</h4>
+                <p style={{fontSize: '0.8rem', color: '#888'}}>Une fois ton compte supprimé, il n'y a plus de retour en arrière possible</p>
+                <button 
+                    onClick={handleDeleteAccount} 
+                    style={{
+                        backgroundColor: '#fa5252',
+                        color: 'white',
+                        border: 'none',
+                        padding: '10px',
+                        width: '100%',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold'
+                    }}
+                >
+                    🗑️ Supprimer mon compte
+                </button>
             </div>
         );
     };

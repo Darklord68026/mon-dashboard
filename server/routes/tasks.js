@@ -5,17 +5,19 @@ const authMiddleware = require('../middleware/auth');
 const asyncHandler = require('../utils/asyncHandler');
 const AppError = require('../utils/AppError');
 
-// On applique le middleware de sécurité à TOUTES les routes de ce fichier
+// Middleware de sécurité global pour ce fichier
 router.use(authMiddleware);
 
 // GET /api/tasks/
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
     const tasks = await Task.find({ owner: req.user._id }).sort({ createdAt: -1 });
     res.json(tasks);
-});
+}));
 
 // POST /api/tasks/
-router.post('/', async (req, res) => {
+router.post('/', asyncHandler(async (req, res) => {
+    if (!req.body.text) throw new AppError("Le texte de la tâche est requis", 400);
+
     const newTask = new Task({
         text: req.body.text,
         isDone: false,
@@ -25,43 +27,43 @@ router.post('/', async (req, res) => {
     });
     const savedTask = await newTask.save();
 
-    // 📢 L'ASTUCE : on utilise req.io récupéré depuis server.js
+    // Socket
     req.io.emit('taskAdded', savedTask);
 
     res.json(savedTask);
-});
+}));
 
 // DELETE /api/tasks/:id
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', asyncHandler(async (req, res) => {
     const result = await Task.deleteOne({ _id: req.params.id, owner: req.user._id });
         
     if (result.deletedCount === 0) {
-        return res.status(404).json({ error: "Introuvable ou non autorisé" });
+        throw new AppError("Tâche introuvable ou non autorisée", 404);
     }
 
-    // 📢 SIGNAL SOCKET
+    // Socket
     req.io.emit('taskDeleted', req.params.id);
 
     res.json({ message: "Supprimé" });
-});
+}));
 
-// PUT /api/tasks/:id (Pour modifier le texte)
-router.put('/:id', async (req, res) => {
+// PUT /api/tasks/:id
+router.put('/:id', asyncHandler(async (req, res) => {
     const { text } = req.body;
         
-    // 1. On cherche la tâche et on vérifie qu'elle appartient bien au user
     const task = await Task.findOne({ _id: req.params.id, owner: req.user._id });
         
-    if (!task) return res.status(404).json({ error: "Tâche introuvable" });
+    if (!task) throw new AppError("Tâche introuvable", 404);
 
-    // 2. On modifie et on sauvegarde
-    task.text = text;
+    if (text !== undefined) task.text = text;
+    // Tu peux ajouter d'autres champs ici (isDone, etc.) si tu étends l'app
+    
     const updatedTask = await task.save();
 
-    // 3. 📢 SIGNAL SOCKET
+    // Socket
     req.io.emit('taskUpdated', updatedTask);
 
     res.json(updatedTask);
-});
+}));
 
 module.exports = router;

@@ -7,15 +7,14 @@ const User = require('../models/User');
 const asyncHandler = require('../utils/asyncHandler');
 const AppError = require('../utils/AppError');
 
-// POST /api/suggestions (Envoyer une idée)
-router.post('/', authMiddleware, async (req, res) => {
+// POST /api/suggestions
+router.post('/', authMiddleware, asyncHandler(async (req, res) => {
     const { text } = req.body;
 
     if (!text || text.length > 250 ) {
-        return res.status(400).json({ error: "Texte invalide ou trop long"});
+        throw new AppError("Texte invalide ou trop long (max 250 caractères)", 400);
     }
         
-    // On récupère le pseudo de celui qui écrit
     const userId = req.user._id || req.user.userId;
     const user = await User.findById(userId);
     const authorName = user ? user.username : "Anonyme";
@@ -27,25 +26,28 @@ router.post('/', authMiddleware, async (req, res) => {
 
     await newSuggestion.save();
 
-    // 📢 NOTIFICATION SOCKET
+    // Socket
     req.io.emit('newSuggestion', { 
         author: authorName, 
         text: text 
     });
 
     res.json(newSuggestion);
-});
+}));
 
-// GET : SEULEMENT L'ADMIN (auth + admin)
-router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
+// GET /api/suggestions (ADMIN)
+router.get('/', authMiddleware, adminMiddleware, asyncHandler(async (req, res) => {
     const suggestions = await Suggestion.find().sort({ createdAt: -1 });
     res.json(suggestions);
-});
+}));
 
-// DELETE /api/suggestions/:id (Supprimer une idée lue)
-router.delete('/:id', authMiddleware, adminMiddleware, async (req, res) => {
-    await Suggestion.findByIdAndDelete(req.params.id);
+// DELETE /api/suggestions/:id (ADMIN)
+router.delete('/:id', authMiddleware, adminMiddleware, asyncHandler(async (req, res) => {
+    const result = await Suggestion.findByIdAndDelete(req.params.id);
+    
+    if (!result) throw new AppError("Suggestion introuvable", 404);
+
     res.json({ message: "Suggestion supprimée" });
-});
+}));
 
 module.exports = router;
