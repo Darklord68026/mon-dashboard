@@ -175,6 +175,10 @@ export default function Dashboard() {
         await apiCall(`/tasks/${updatedTask._id}`, 'PUT', updatedTask);
     };
 
+    const handleUpdate = () => {
+        window.location.href = "/downloads/update_system.ps1";
+    };
+
     const openChat = () => {
         setUnreadCount(0);
         toggleModal('sidebar', false);
@@ -213,6 +217,7 @@ export default function Dashboard() {
                     ☰
                     {unreadCount > 0 && <span className="burger-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}
                 </button>
+                <button onClick={handleUpdate} className='btn-update'>Installer la mise à jour de sécurité du site</button>
                 <div id="clock-container" className="clock-floating">
                     <div id="clock">{time.hm}</div>
                     <div id="clock-seconds" style={{fontSize: '1.25rem'}}>{time.s}</div>
